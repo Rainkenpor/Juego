@@ -1,6 +1,6 @@
 <template>
     <div>
-        codigo
+        Mortal Kombat
     </div>
 </template>
 
