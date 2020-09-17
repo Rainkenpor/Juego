@@ -10,7 +10,7 @@
     <button @click="caminar()">Caminar</button>
     
     <img class="personaje" :src="require(`./assets${carpeta+nombre}`)" :style="{'left':left+'px'}">
-
+    
 </div>
 </template>
 
@@ -98,11 +98,12 @@ body {
     position: absolute;
     height: 100%;
     width: 100%;
-    background-image: url('https://cdnb.artstation.com/p/assets/images/images/008/107/625/large/henrique-percu-oliveira-highresscreenshot00002.jpg?1510540979');
+    /* background-image: url('https://cdnb.artstation.com/p/assets/images/images/008/107/625/large/henrique-percu-oliveira-highresscreenshot00002.jpg?1510540979'); */
 }
 
 .personaje {
-    height: 250px;
-    position: relative;
+    height: 150px;
+    position: absolute;
+    top:0
 }
 </style>
