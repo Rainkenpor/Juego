@@ -1,23 +1,27 @@
 <template>
 <div id="app">
-    <kevin style="z-index: 0;" />
-    <sherlyn style="z-index: 1;" />
-    <yeimi style="z-index: 2;" />
+
+    <mapa/>
+
+    <!-- <kevin style="z-index: 0;"  /> -->
+    <!-- <sherlyn style="z-index: 1;" />
+    <yeimi style="z-index: 2;" /> -->
 
     <button @click="atacar()">Atacar</button>
     <button @click="morir()">Morir</button>
     <button @click="esperar()">Espera</button>
     <button @click="caminar()">Caminar</button>
     
-    <img class="personaje" :src="require(`./assets${carpeta+nombre}`)" :style="{'left':left+'px'}">
+    <!-- <img class="personaje" :src="require(`./assets${carpeta+nombre}`)" :style="{'left':left+'px'}"> -->
     
 </div>
 </template>
 
 <script>
-import kevin from './components/Kevin.vue'
-import sherlyn from './components/Sherlyn.vue'
-import yeimi from './components/Yeimi.vue'
+import mapa from './components/Mapa.vue'
+// import kevin from './components/Kevin.vue'
+// import sherlyn from './components/Sherlyn.vue'
+// import yeimi from './components/Yeimi.vue'
 
 export default {
     name: 'App',
@@ -35,9 +39,10 @@ export default {
         }
     },
     components: {
-        kevin,
-        sherlyn,
-        yeimi
+        mapa,
+        // kevin,
+        // sherlyn,
+        // yeimi
     },
     methods: {
         atacar() {
@@ -95,6 +100,7 @@ export default {
 
 <style>
 body {
+    margin:0;
     position: absolute;
     height: 100%;
     width: 100%;
