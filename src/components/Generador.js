@@ -305,8 +305,8 @@ function generar (el){
                         
                         let index = Math.floor(Math.random() * ((personaje==false)?this.mobChars.length:this.mobChars.length-1))
                         
-                        if (index==this.mobChars.length-1){
-                            console.log(this.mobChars[index])
+                        if ( this.mobChars[index] == "😃"){
+                            // console.log(this.mobChars[index])
                             personaje = true
                             el.personaje.x = floor.x
                             el.personaje.y = floor.y
@@ -461,7 +461,7 @@ function generar (el){
             placeWalls();
             placePaths();
             placeRooms();
-            v = new Visualization(root, map, canvas, ctx, "bold 20px 'IBM Plex Mono', monospace", 50, ["🍎", "🌟", "👻", "👽", "🤡", "🤬", "👀", "🧠", "🔥", "🥩", "🍺","😃"], {
+            v = new Visualization(root, map, canvas, ctx, "bold 20px 'IBM Plex Mono', monospace", 50, ["🍎", "🌟", "👻", "👽", "🤡", "🤬", "🌲", "🧠", "🔥", "🥩", "🍺","😃"], {
                 wall: 3,
                 path: 2,
                 room: 1

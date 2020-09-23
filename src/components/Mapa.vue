@@ -7,6 +7,14 @@
         <img id="muro" :src="require(`../assets/mapa/Tiles/Tile_31.png`)">
         <img id="piso" :src="require(`../assets/mapa/Tiles/Tile_12.png`)">
         <img id="camino" :src="require(`../assets/mapa/Tiles/Tile_58.png`)">
+
+        <img id="caja" :src="require(`../assets/mapa/Objects/Boxes/1.png`)">
+
+        <img id="arbusto" :src="require(`../assets/mapa/Objects/Bushes/4.png`)">
+        <img id="arbol" :src="require(`../assets/mapa/Objects/Ridges/4.png`)">
+        <img id="arbol2" :src="require(`../assets/mapa/Objects/Willows/1.png`)">
+        <img id="roca" :src="require(`../assets/mapa/Objects/Stones/1.png`)">
+        <!-- <img id="camino" :src="require(`../assets/mapa/Tiles/Tile_58.png`)"> -->
         {{personaje}}
     </div>
 </div>
