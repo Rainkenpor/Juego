@@ -1,9 +1,12 @@
 <template>
 <div>
 
-    <canvas width="900" height="900" class="screen"></canvas>
+    <div style="color:white;font-size:20px" v-if="!visible_canvas">
+        Cargando...
+    </div>
+    <canvas width="900" height="900" class="screen" v-show="visible_canvas"></canvas>
 
-    <div style="background-color:white;position:absolute;">
+    <div style="background-color:white;position:absolute;" v-show="false">
         <img id="muro" :src="require(`../assets/mapa/Tiles/Tile_31.png`)">
         <img id="piso" :src="require(`../assets/mapa/Tiles/Tile_12.png`)">
         <img id="camino" :src="require(`../assets/mapa/Tiles/Tile_58.png`)">
@@ -15,8 +18,16 @@
         <img id="arbol2" :src="require(`../assets/mapa/Objects/Willows/1.png`)">
         <img id="roca" :src="require(`../assets/mapa/Objects/Stones/1.png`)">
         <!-- <img id="camino" :src="require(`../assets/mapa/Tiles/Tile_58.png`)"> -->
-        {{personaje}}
+        <!-- {{personaje}} -->
+        
     </div>
+    <div style="position:absolute;top:900px;left:350px">
+        <button v-if="joystick_==false" @click="joystick_=true">Habilitar JoyStick</button>
+        <!-- <div  style="position:relative;overflow:hidden"> -->
+            <div v-show="joystick_"  id="joyDiv" style="width:200px;height:200px"></div>
+        <!-- </div> -->
+    </div>
+    
 </div>
 </template>
 
@@ -30,6 +41,8 @@ import {
     actualizar
 } from './Generador_Movimiento.js'
 
+import JoyStick from '../assets/js/joy.js'
+
 export default {
     data() {
         return {
@@ -41,13 +54,17 @@ export default {
             personaje: {
                 x: 0,
                 y: 0
-            }
+            },
+            joystick_:true,
+            visible_canvas:false
         }
     },
     mounted() {
         generar(this)
             .then(() => {
                 inicializar(this)
+                this.joystick_=false
+                this.visible_canvas=true
                 let keysPressed = []
                 this.camara.x =   (17 - (this.personaje.x *2)) 
                 this.camara.y =   (17 - (this.personaje.y *2)) 
@@ -65,16 +82,58 @@ export default {
                 });
 
                 setInterval(()=>{
+                    if (!this.joystick_){
+                        if (keysPressed[37] || keysPressed[38] || keysPressed[39] || keysPressed[40]) {
+                            movimiento(keysPressed)
+                        }
+                    }
+                },30)
+
+                var joy = new JoyStick('joyDiv');
+                setInterval(function(){ 
+                    delete keysPressed[37]
+                    delete keysPressed[38]
+                    delete keysPressed[39]
+                    delete keysPressed[40]
+                    let p =joy.GetDir();
+                    if (p=='N') keysPressed[38]=true
+                    if (p=='E') keysPressed[39]=true
+                    if (p=='NE'){
+                        keysPressed[38]=true
+                        keysPressed[39]=true
+                    }
+                    if (p=='SE'){
+                        keysPressed[40]=true
+                        keysPressed[39]=true
+                    }
+                    if (p=='W') keysPressed[37]=true
+                    if (p=='S') keysPressed[40]=true
+                    if (p=='NW'){
+                        keysPressed[38]=true
+                        keysPressed[37]=true
+                    }
+                    if (p=='SW'){
+                        keysPressed[40]=true
+                        keysPressed[37]=true
+                    }
+
+                    // console.log(p)
                     if (keysPressed[37] || keysPressed[38] || keysPressed[39] || keysPressed[40]) {
                         movimiento(keysPressed)
                     }
-                },30)
+                }, 30);
 
             })
 
     }
 }
 </script>
+
+<style >
+body{
+    background-color:black
+}
+</style>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css?family=IBM+Plex+Mono:400,700&display=swap');
