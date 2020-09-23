@@ -1,7 +1,5 @@
 function generar (el){
     return new Promise(resolve=>{
-        var img_muro = document.getElementById("muro");
-        var img_piso = document.getElementById("piso");
 
         var __spreadArrays = this && this.__spreadArrays || function () {
             for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
@@ -227,13 +225,8 @@ function generar (el){
                     // },
                     function () {
                         if (_this.asciiLineCounter < _this.root.chunk.h) {
-                            var y = _this.asciiLineCounter * _this.scaleY;
-                            // _this.ctx.clearRect(0, y, _this.canvas.width, _this.scaleY);
                             for (var i = 0; i < map[_this.asciiLineCounter].length; i++) {
-                                var x = i * _this.scaleX;
                                 var tile = map[_this.asciiLineCounter][i];
-                                
-                                _this.drawAscii(tile, x, y);
                             }
                             _this.drawChunkLines();
                             _this.asciiLineCounter++;
@@ -241,15 +234,12 @@ function generar (el){
                             ctx.fillStyle = _this.colors.bg;
                             ctx.fillRect(0, 0, canvas.width, canvas.height);
                             for (i = 0; i < map.length; i++) {
-                                y = i * _this.scaleY;
                                 for (var j = 0; j < map[i].length; j++) {
-                                    x = j * _this.scaleX;
                                     // el.mapa[j] = []
                                     // el.mapa[j][i] = tile
                                     tile = map[i][j];
                                     if (!el.mapa[j]) el.mapa[j] = []
-                                    el.mapa[j][i]={t:tile,mostra:false}
-                                    _this.drawAscii(tile, x, y);       
+                                    el.mapa[j][i]={t:tile,mostra:false}    
                                 }
                             }
                             _this.stepCounter++;
@@ -272,14 +262,7 @@ function generar (el){
                 ];
 
             }
-            Visualization.prototype.putChar = function (char, x, y) {
-                ctx.textBaseline = "top";
-                
-                if (char=='#') this.ctx.drawImage(img_muro, x, y,50,50);
-                if (char=='*')this.ctx.drawImage(img_piso, x, y,50,50);
-                if (char=='.')this.ctx.drawImage(img_piso, x, y,50,50);
-                // this.ctx.fillText(y, x, y);
-            };
+           
             Visualization.prototype.getFloors = function () {
                 var floors = [];
                 for (var i = 0; i < this.map.length; i++) {
@@ -330,21 +313,6 @@ function generar (el){
                 forEach(function (e) {
                     return _this.ctx.strokeRect(e.x * _this.scaleX, e.y * _this.scaleY, e.w * _this.scaleX, e.h * _this.scaleY);
                 });
-            };
-            Visualization.prototype.drawAscii = function (tile, x, y) {
-                if (tile == this.index.room) {
-                    this.ctx.fillStyle = this.colors.asciiRoom;
-                    // console.log(this.chars.room)
-                    this.putChar(this.chars.room, x, y);
-                } else
-                if (tile == this.index.path) {
-                    this.ctx.fillStyle = this.colors.asciiPath;
-                    this.putChar(this.chars.path, x, y);
-                } else
-                if (tile == this.index.wall) {
-                    this.ctx.fillStyle = this.colors.wall;
-                    this.putChar(this.chars.wall, x, y);
-                }
             };
             Visualization.prototype.tick = function (animDelay) {
                 if (this.frameCounter % animDelay == 0 &&

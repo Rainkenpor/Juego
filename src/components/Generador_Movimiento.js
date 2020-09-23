@@ -12,6 +12,10 @@ let img_arbusto
 let img_arbol
 let img_arbol2
 let img_roca
+let temp_personaje = {
+    x:0,
+    y:0
+}
 
 function inicializar(el){
     mapa = el.mapa
@@ -26,14 +30,11 @@ function inicializar(el){
     img_roca = document.getElementById("roca");
     canvas = document.querySelector(".screen") || new HTMLCanvasElement();
     ctx = canvas.getContext("2d") || new CanvasRenderingContext2D();
-
-    
+    ctx.font = "bold 25px 'IBM Plex Mono', monospace"
+    ctx.textBaseline = "top";
 }
 
-function movimiento (keypress){
-    
-    // ctx.drawImage(img_muro, x, y,50,50);
-
+function movimiento (keypress,socket){
     if (keypress[37] && !tope_muro((personaje.x+0.2) - 0.25,(personaje.y+0.2))){
         camara.x+=0.5
         personaje.x-=0.25
@@ -51,9 +52,25 @@ function movimiento (keypress){
         personaje.y+=0.25
     }
 
-    actualizar()
-    
+    if (temp_personaje.x!=personaje.x || temp_personaje.y!=personaje.y){
+        socket.emit('room_msg', {
+            uniq: "juego_laberinto",
+            my_exclude: false,
+            persistent: false,
+            message: {
+                type: 'personaje',
+                personaje:personaje
+            }
+        })
+    }
+
+    temp_personaje.x=personaje.x
+    temp_personaje.y=personaje.y
+
+    actualizar()    
 }
+
+
 function actualizar(){
     let camaraX = ((camara.x * (scaleX/2)))
     let camaraY = ((camara.y  * (scaleY/2)))
@@ -73,7 +90,6 @@ function actualizar(){
             if (["🍎", "🌟", "👻", "👽", "🤡", "🤬", "🌲", "🧠", "🔥", "🥩", "🍺","😀"].indexOf(data_.t)>=0) {
                 ctx.drawImage(img_piso, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50); 
             }
-            // console.log(data_.t)
         })
     })
 
@@ -115,23 +131,10 @@ function actualizar(){
             }
             
         })
-    })
-
-    
-
-    
+    })    
 }
 
-
 function visibilidad(){
-    // console.log(personaje)
-    // let total = 3
-    
-    
-    // let i=0,t=0
-    // // let r = 0
-    // let canvas = document.querySelector(".screen") || new HTMLCanvasElement();
-    // let ctx = canvas.getContext("2d") || new CanvasRenderingContext2D();
     let arr = []
     for(var rad = 0; rad<=360;rad+=1){
         ctx.fillStyle = "white";
@@ -144,31 +147,17 @@ function visibilidad(){
                 if (!arr[x]) arr[x]=[]
                 let v = 1 -(radio/150)+0.5
                 arr[x][y]=(v>0.2)?((v>1)?1:v):0.2
-                // ctx.fillText('*', r.x, r.y);
             }
-            if (tope_muro(x,y)) valid =false
-            
+            if (tope_muro(x,y)) valid =false            
         }
     }
-
-
-
-    // console.log(mapa[x][y].mostrar)
-    // let r = !tope_muro(x+i,y+t)
-//    r = 1
    return arr
-    
-    
 }
 
 const clockwiseRotate = (center, angle,radius) => {
-    // var radius = 60;
-    
     var x = radius * Math.sin(Math.PI * 2 * angle / 360);
     var y = radius * Math.cos(Math.PI * 2 * angle / 360);
 
-    
-    // let center1 = center
     return {
       x:    (Math.round(x * 100) / 100)+center.x,
       y:    (Math.round(y * 100) / 100)+center.y,
@@ -178,7 +167,6 @@ const clockwiseRotate = (center, angle,radius) => {
   
 
 function tope_muro(x,y){
-    // console.log(x,mapa[parseInt(x)][parseInt(y)])
     return mapa[parseInt(x)] && mapa[parseInt(x)][parseInt(y)] && mapa[parseInt(x)][parseInt(y)].t==3
 }
 

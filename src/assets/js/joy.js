@@ -152,7 +152,7 @@ export default function JoyStick (container, parameters)
 	/**
 	 * @desc Events for manage touch
 	 */
-	function onTouchStart(event) 
+	function onTouchStart() 
 	{
 		pressed = 1;
 	}
@@ -184,7 +184,7 @@ export default function JoyStick (container, parameters)
 		}
 	} 
 
-	function onTouchEnd(event) 
+	function onTouchEnd() 
 	{
 		pressed = 0;
 		// If required reset position store variable
@@ -204,7 +204,7 @@ export default function JoyStick (container, parameters)
 	/**
 	 * @desc Events for manage mouse
 	 */
-	function onMouseDown(event) 
+	function onMouseDown() 
 	{
 		pressed = 1;
 	}
@@ -234,7 +234,7 @@ export default function JoyStick (container, parameters)
 		}
 	}
 
-	function onMouseUp(event) 
+	function onMouseUp() 
 	{
 		pressed = 0;
 		// If required reset position store variable

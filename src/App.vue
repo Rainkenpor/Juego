@@ -1,24 +1,18 @@
 <template>
 <div id="app">
 
-    <mapa/>
+    <button @click="cargar_mapa">Cargar Mapa</button>
 
-    <!-- <kevin style="z-index: 0;"  /> -->
-    <!-- <sherlyn style="z-index: 1;" />
-    <yeimi style="z-index: 2;" /> -->
+    <mapa v-if="mostrar_mapa" :socket="socket" :servidor_mapa="servidor_mapa" :servidor_personaje="servidor_personaje"  :usuario="nombre"/>
 
-    <button @click="atacar()">Atacar</button>
-    <button @click="morir()">Morir</button>
-    <button @click="esperar()">Espera</button>
-    <button @click="caminar()">Caminar</button>
-    
     <!-- <img class="personaje" :src="require(`./assets${carpeta+nombre}`)" :style="{'left':left+'px'}"> -->
-    
+
 </div>
 </template>
 
 <script>
 import mapa from './components/Mapa.vue'
+import io from 'socket.io-client';
 // import kevin from './components/Kevin.vue'
 // import sherlyn from './components/Sherlyn.vue'
 // import yeimi from './components/Yeimi.vue'
@@ -27,8 +21,10 @@ export default {
     name: 'App',
     data() {
         return {
-            carpeta: '/zombie/male/',
-            nombre: 'Attack (1).png',
+            nombre: null,
+            mostrar_mapa: false,
+            servidor_mapa: [],
+            servidor_personaje: null,
 
             left: 0,
 
@@ -36,6 +32,8 @@ export default {
             tiempo_morir: null,
             tiempo_esperar: null,
             tiempo_caminar: null,
+
+            socket: null,
         }
     },
     components: {
@@ -45,54 +43,79 @@ export default {
         // yeimi
     },
     methods: {
-        atacar() {
-            let numero = 1
-            this.limpiar()
-            this.tiempo_atacar = setInterval(() => {
-                if (numero > 8) numero = 1
-                this.nombre = 'Attack (' + numero + ').png'
-                numero++
-            }, 100)
+        cargar_mapa() {
+            this.mostrar_mapa = true
         },
 
-        morir() {
-            let numero = 1
-            this.limpiar()
-            this.tiempo_morir = setInterval(() => {
-                if (numero > 12) numero = 1
-                this.nombre = 'Dead (' + numero + ').png'
-                numero++
-            }, 100)
-        },
+        iniciar_socket() {
+            this.socket = io('https://www.dinnger.com:4003');
+            this.socket.on('connect', () => {
+                console.log('conectado...')
+                // console.log(e)
+                var date = new Date();
+                this.nombre = date.getTime() + '_' + this.nombre
+                let temp_session = {
+                    user_id: 493,
+                    full_name: this.nombre
+                }
+                this.socket.emit('set_verify_user', temp_session)
+            });
 
-        esperar() {
-            let numero = 1
-            this.limpiar()
-            this.tiempo_esperar = setInterval(() => {
-                if (numero > 15) numero = 1
-                this.nombre = 'Idle (' + numero + ').png'
-                numero++
-            }, 100)
-        },
+            this.socket.on('get_verify_user', () => {
+                this.socket.emit('room_new', {
+                    id: "juego_laberinto",
+                    name: "juego movimiento",
+                    min_role: 2 //role superior
+                })
 
-        caminar() {
-            let numero = 1
-            this.limpiar()
-            this.tiempo_caminar = setInterval(() => {
-                this.left+=12
-                if (numero > 10) numero = 1
-                this.nombre = 'Walk (' + numero + ').png'
-                numero++
-            }, 100)
-        },
+                this.socket.emit('room_assign', {
+                    uniq: "juego_laberinto",
+                    role_id: 2 //role superior
+                })
 
-        limpiar() {
-            clearInterval(this.tiempo_morir)
-            clearInterval(this.tiempo_atacar)
-            clearInterval(this.tiempo_esperar)
-            clearInterval(this.tiempo_caminar)
+            })
+
+
+            this.socket.emit("room_persistent", "juego_laberinto")
+
+            this.socket.on('room_msg_juego_laberinto', (data) => {
+                
+                if (data.message.type == 'cerrar_mapa') {
+                    this.servidor_mapa = []
+                    this.servidor_personaje = null
+                    this.mostrar_mapa = false
+                }
+
+
+                if (data.message.type=='personaje'){
+                    console.log(data.message)
+                }
+            })
+
+            this.socket.on('room_persistent_juego_laberinto', (data) => {
+                //entrando a la sala
+                if (data && data.length > 0) {
+                    let arr = data.filter(data => data.message.type == 'juego_mapa')
+                    if (arr.length > 0) {
+                        this.servidor_mapa = arr[0].message.mapa
+                        this.servidor_personaje = arr[0].message.personaje
+                        this.mostrar_mapa = true
+                    }
+                }
+                
+            });
+
+            // this.socket.on('event', function (data) {});
+            // this.socket.on('disconnect', function () {});
+        }
+    },
+    mounted() {
+
+        while (this.nombre == null || this.nombre.trim()=="") {
+            this.nombre = prompt("Nombre del Jugador", "")
         }
 
+        this.iniciar_socket()
     }
 
 }
@@ -100,7 +123,7 @@ export default {
 
 <style>
 body {
-    margin:0;
+    margin: 0;
     position: absolute;
     height: 100%;
     width: 100%;
@@ -110,6 +133,6 @@ body {
 .personaje {
     height: 150px;
     position: absolute;
-    top:0
+    top: 0
 }
 </style>

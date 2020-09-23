@@ -19,15 +19,17 @@
         <img id="roca" :src="require(`../assets/mapa/Objects/Stones/1.png`)">
         <!-- <img id="camino" :src="require(`../assets/mapa/Tiles/Tile_58.png`)"> -->
         <!-- {{personaje}} -->
-        
+
     </div>
     <div style="position:absolute;top:900px;left:350px">
+
         <button v-if="joystick_==false" @click="joystick_=true">Habilitar JoyStick</button>
+        <button v-if="mostrar_finalizar" @click="cerrar_mapa">Cerrar Mapa</button>
         <!-- <div  style="position:relative;overflow:hidden"> -->
-            <div v-show="joystick_"  id="joyDiv" style="width:200px;height:200px"></div>
+        <div v-show="joystick_" id="joyDiv" style="width:200px;height:200px"></div>
         <!-- </div> -->
     </div>
-    
+
 </div>
 </template>
 
@@ -55,87 +57,150 @@ export default {
                 x: 0,
                 y: 0
             },
-            joystick_:true,
-            visible_canvas:false
+            jugadores: [],
+            joystick_: true,
+            visible_canvas: false,
+            mostrar_finalizar: false
         }
     },
-    mounted() {
-        generar(this)
-            .then(() => {
-                inicializar(this)
-                this.joystick_=false
-                this.visible_canvas=true
-                let keysPressed = []
-                this.camara.x =   (17 - (this.personaje.x *2)) 
-                this.camara.y =   (17 - (this.personaje.y *2)) 
-                actualizar()
-                document.addEventListener('keydown', (event) => {
-                    // console.log(event.keyCode)
-                    keysPressed[event.keyCode] = true;
+    props: {
+        socket: {
+            default: null
+        },
+        servidor_mapa: {
+            default: []
+        },
+        servidor_personaje: {
+            default: null
+        },
+        usuario:{
+            default:null
+        }
+    },
+    methods: {
+        iniciar() {
+            // inicializando mapa
+            inicializar(this)
+            this.joystick_ = false
+            this.visible_canvas = true
+            let keysPressed = []
+            this.camara.x = (17 - (this.personaje.x * 2))
+            this.camara.y = (17 - (this.personaje.y * 2))
 
-                    
-                });
+            // actualización de camara
+            actualizar()
 
-                document.addEventListener('keyup', (event) => {
-                    delete keysPressed[event.keyCode];
-
-                });
-
-                setInterval(()=>{
-                    if (!this.joystick_){
-                        if (keysPressed[37] || keysPressed[38] || keysPressed[39] || keysPressed[40]) {
-                            movimiento(keysPressed)
-                        }
+            if (this.servidor_personaje == null) {
+                this.socket.emit('room_msg', {
+                    uniq: "juego_laberinto",
+                    my_exclude: false,
+                    persistent: true,
+                    message: {
+                        type: 'juego_mapa',
+                        mapa: this.mapa,
+                        personaje:[
+                            {
+                                usuario:this.usuario,
+                                personaje:this.personaje
+                            }
+                        ] 
                     }
-                },30)
+                })
+            } 
 
-                var joy = new JoyStick('joyDiv');
-                setInterval(function(){ 
+            this.mostrar_finalizar = true
+            
+
+            document.addEventListener('keydown', (event) => {
+                keysPressed[event.keyCode] = true;
+            });
+
+            document.addEventListener('keyup', (event) => {
+                delete keysPressed[event.keyCode];
+            });
+
+            setInterval(() => {
+                if (!this.joystick_) {
+                    if (keysPressed[37] || keysPressed[38] || keysPressed[39] || keysPressed[40]) {
+                        movimiento(keysPressed,this.socket)
+                    }
+                }
+            }, 30)
+
+            var joy = new JoyStick('joyDiv');
+            setInterval(function () {
+                if (this.joystick_) {
                     delete keysPressed[37]
                     delete keysPressed[38]
                     delete keysPressed[39]
                     delete keysPressed[40]
-                    let p =joy.GetDir();
-                    if (p=='N') keysPressed[38]=true
-                    if (p=='E') keysPressed[39]=true
-                    if (p=='NE'){
-                        keysPressed[38]=true
-                        keysPressed[39]=true
+                    let p = joy.GetDir();
+                    if (p == 'N') keysPressed[38] = true
+                    if (p == 'E') keysPressed[39] = true
+                    if (p == 'NE') {
+                        keysPressed[38] = true
+                        keysPressed[39] = true
                     }
-                    if (p=='SE'){
-                        keysPressed[40]=true
-                        keysPressed[39]=true
+                    if (p == 'SE') {
+                        keysPressed[40] = true
+                        keysPressed[39] = true
                     }
-                    if (p=='W') keysPressed[37]=true
-                    if (p=='S') keysPressed[40]=true
-                    if (p=='NW'){
-                        keysPressed[38]=true
-                        keysPressed[37]=true
+                    if (p == 'W') keysPressed[37] = true
+                    if (p == 'S') keysPressed[40] = true
+                    if (p == 'NW') {
+                        keysPressed[38] = true
+                        keysPressed[37] = true
                     }
-                    if (p=='SW'){
-                        keysPressed[40]=true
-                        keysPressed[37]=true
+                    if (p == 'SW') {
+                        keysPressed[40] = true
+                        keysPressed[37] = true
                     }
 
                     // console.log(p)
                     if (keysPressed[37] || keysPressed[38] || keysPressed[39] || keysPressed[40]) {
-                        movimiento(keysPressed)
+                        movimiento(keysPressed,this.socket)
                     }
-                }, 30);
-
+                }
+            }, 30);
+        },
+        cerrar_mapa() {
+            this.socket.emit('room_persistent_destroy', {
+                idroom: "juego_laberinto",
+                type: 'juego_mapa',
             })
+
+            this.socket.emit('room_msg', {
+                uniq: "juego_laberinto",
+                my_exclude: false,
+                persistent: false,
+                message: {
+                    type: 'cerrar_mapa',
+                }
+            })
+
+        }
+    },
+    mounted() {
+        if (this.servidor_mapa.length == 0) {
+            generar(this)
+                .then(() => {
+                    this.iniciar()
+                })
+        } else {
+            this.mapa = this.servidor_mapa
+            this.personaje = this.servidor_personaje
+            this.iniciar()
+        }
 
     }
 }
 </script>
 
-<style >
-body{
-    background-color:black
+<style>
+body {
+    background-color: black
 }
-</style>
-
-<style scoped>
+</style><style scoped>
 @import url('https://fonts.googleapis.com/css?family=IBM+Plex+Mono:400,700&display=swap');
 
 * {
