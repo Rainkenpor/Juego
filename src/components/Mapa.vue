@@ -83,7 +83,7 @@ export default {
     methods: {
         iniciar() {
             // inicializando mapa
-            inicializar(this,this.socket)
+            inicializar(this, this.socket)
             this.joystick_ = false
             this.visible_canvas = true
             let keysPressed = []
@@ -102,13 +102,11 @@ export default {
                     message: {
                         type: 'juego_mapa',
                         mapa: this.mapa,
-                        inicio:this.personaje,
-                        
+                        inicio: this.personaje,
+
                     }
                 })
             }
-
-            
 
             this.mostrar_finalizar = true
 
@@ -120,19 +118,14 @@ export default {
                 delete keysPressed[event.keyCode];
             });
 
+            var joy = new JoyStick('joyDiv');
+
             setInterval(() => {
                 if (!this.joystick_) {
                     if (keysPressed[37] || keysPressed[38] || keysPressed[39] || keysPressed[40]) {
                         movimiento(keysPressed, this.socket)
                     }
-                }
-                actualizar()
-            }, 30)
-
-            var joy = new JoyStick('joyDiv');
-            setInterval(() => {
-                if (this.joystick_) {
-
+                } else {
                     delete keysPressed[37]
                     delete keysPressed[38]
                     delete keysPressed[39]
@@ -165,7 +158,9 @@ export default {
                         movimiento(keysPressed, this.socket)
                     }
                 }
-            }, 30);
+                actualizar()
+            }, 30)
+
         },
         cerrar_mapa() {
             //destruyendo datos persistentes
