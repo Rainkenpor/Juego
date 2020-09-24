@@ -1,9 +1,11 @@
 <template>
 <div>
 
+<button v-if="mostrar_finalizar" @click="cerrar_mapa" style="position: absolute; top: 0px;left:100px;z-index: 99;background-color: black;border: 1px solid #111;">Cerrar Mapa</button>
     <div style="color:white;font-size:20px" v-if="!visible_canvas">
         Cargando...
     </div>
+    
     <canvas width="900" height="900" class="screen" v-show="visible_canvas"></canvas>
 
     <div style="background-color:white;position:absolute;" v-show="false">
@@ -24,7 +26,7 @@
     <div style="position:absolute;top:900px;left:350px">
 
         <button v-if="joystick_==false" @click="joystick_=true">Habilitar JoyStick</button>
-        <button v-if="mostrar_finalizar" @click="cerrar_mapa">Cerrar Mapa</button>
+        
         <!-- <div  style="position:relative;overflow:hidden"> -->
         <div v-show="joystick_" id="joyDiv" style="width:200px;height:200px"></div>
         <!-- </div> -->
@@ -128,13 +130,15 @@ export default {
             }, 30)
 
             var joy = new JoyStick('joyDiv');
-            setInterval(function () {
+            setInterval(()=> {
                 if (this.joystick_) {
+
                     delete keysPressed[37]
                     delete keysPressed[38]
                     delete keysPressed[39]
                     delete keysPressed[40]
                     let p = joy.GetDir();
+                    console.log(p)
                     if (p == 'N') keysPressed[38] = true
                     if (p == 'E') keysPressed[39] = true
                     if (p == 'NE') {
