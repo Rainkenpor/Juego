@@ -181,14 +181,16 @@ export default {
         }
     },
     mounted() {
+        // console.log(this.servidor_mapa)
         if (this.servidor_mapa.length == 0) {
             generar(this)
                 .then(() => {
                     this.iniciar()
                 })
         } else {
+            console.log(this.servidor_personaje)
             this.mapa = this.servidor_mapa
-            this.personaje = this.servidor_personaje
+            this.personaje = this.servidor_personaje[0].personaje
             this.iniciar()
         }
 

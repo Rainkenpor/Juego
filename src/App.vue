@@ -58,6 +58,7 @@ export default {
                     user_id: 493,
                     full_name: this.nombre
                 }
+                // console.log(temp_session)
                 this.socket.emit('set_verify_user', temp_session)
             });
 
@@ -95,6 +96,7 @@ export default {
             this.socket.on('room_persistent_juego_laberinto', (data) => {
                 //entrando a la sala
                 if (data && data.length > 0) {
+                    // console.log(data)
                     let arr = data.filter(data => data.message.type == 'juego_mapa')
                     if (arr.length > 0) {
                         this.servidor_mapa = arr[0].message.mapa
