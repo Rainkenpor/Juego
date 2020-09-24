@@ -109,7 +109,7 @@ export default {
     mounted() {
 
         while (this.nombre == null || this.nombre.trim() == "") {
-            this.nombre = prompt("Nombre del Jugador", "")
+            this.nombre = prompt("Nombre del Jugador", "").substring(0,10)
         }
 
         this.iniciar_socket()

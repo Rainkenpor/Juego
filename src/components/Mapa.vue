@@ -131,7 +131,7 @@ export default {
                     delete keysPressed[39]
                     delete keysPressed[40]
                     let p = joy.GetDir();
-                    console.log(p)
+                    
                     if (p == 'N') keysPressed[38] = true
                     if (p == 'E') keysPressed[39] = true
                     if (p == 'NE') {
@@ -159,7 +159,7 @@ export default {
                     }
                 }
                 actualizar()
-            }, 30)
+            }, ((!this.joystick_)?30:10))
 
         },
         cerrar_mapa() {

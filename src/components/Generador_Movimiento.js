@@ -20,6 +20,7 @@ let usuario
 let socket
 
 let jugadores = []
+let npc =[]
 
 function inicializar(el,socket_){
     mapa = el.mapa
@@ -40,17 +41,28 @@ function inicializar(el,socket_){
     usuario = el.nombre_usuario
     socket = socket_
 
+    //npc
+    mapa.map((data,item)=>{
+        let x = item
+        data.map((data_,item_)=>{
+            let y = item_
+            if (["👻", "👽", "🤡", "🤬"].indexOf(data_.t)>=0) {
+                npc.push({
+                    npc:data_.t,
+                    x,
+                    y
+                })
+            }
+        })
+    })
+    
+    // console.log('npc',npc)
     // jugadores
     socket.on('room_msg_juego_laberinto', (data) => {
         if (data.message.type == 'personaje') {
-            // console.log(data.message)
-            console.log(data.message.usuario,data.message.personaje)
             jugadores[data.message.usuario]=data.message.personaje
         }
     })
-
-
-
 }
 
 function movimiento (keypress,socket){
@@ -72,6 +84,11 @@ function movimiento (keypress,socket){
     }   
 
     if (temp_personaje.x!=personaje.x || temp_personaje.y!=personaje.y){
+        npc.map(data=>{
+            data.x+=0.25
+            data.y+=0.25
+        })
+
         socket.emit('room_msg', {
             uniq: "juego_laberinto",
             my_exclude: true,
@@ -102,13 +119,16 @@ function actualizar(){
         data.map((data_,item_)=>{
             let y = item_
             let visible =(m[x] && m[x][y])?m[x][y]:0
-            ctx.globalAlpha =(visible>0)?visible: (data_.mostrar==true)?0.2:0;
-            if (ctx.globalAlpha>0) data_.mostrar=true
-            if (data_.t==3) ctx.drawImage(img_muro, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50);
-            if (data_.t==1) ctx.drawImage(img_piso, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50); 
-            if (data_.t==2) ctx.drawImage(img_camino, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50); 
-            if (["🍎", "🌟", "👻", "👽", "🤡", "🤬", "🌲", "🧠", "🔥", "🥩", "🍺","😀"].indexOf(data_.t)>=0) {
-                ctx.drawImage(img_piso, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50); 
+            let v = (visible>0)?visible: (data_.mostrar==true)?0.2:0;
+            if (v>0){
+                ctx.globalAlpha =v
+                if (ctx.globalAlpha>0) data_.mostrar=true
+                if (data_.t==3) ctx.drawImage(img_muro, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50);
+                if (data_.t==1) ctx.drawImage(img_piso, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50); 
+                if (data_.t==2) ctx.drawImage(img_camino, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50); 
+                if (["🍎", "🌟", "👻", "👽", "🤡", "🤬", "🌲", "🧠", "🔥", "🥩", "🍺","😀"].indexOf(data_.t)>=0) {
+                    ctx.drawImage(img_piso, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50); 
+                }
             }
         })
     })
@@ -117,73 +137,92 @@ function actualizar(){
     ctx.globalAlpha = 1;
     ctx.fillText("😃", (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY);
 
-    mapa.map((data,item)=>{
-        let x = item
-        data.map((data_,item_)=>{
-            let y = item_
-            if (["🍎", "🌟", "👻", "👽", "🤡", "🤬", "🌲", "🧠", "🔥", "🥩", "🍺"].indexOf(data_.t)>=0) {
-                let visible =(m[x] && m[x][y])?m[x][y]:0
-                ctx.globalAlpha =(visible>0)?visible: (data_.mostrar==true)?0.2:0;
-                if (data_.t=="🌲") ctx.drawImage(img_arbusto, (x * scaleX)+ camaraX - 20, (y * scaleY)+ camaraY ,80,50); 
-                if (data_.t=="👻") ctx.drawImage(img_arbusto, (x * scaleX)+ camaraX - 20, (y * scaleY)+ camaraY ,80,50); 
-
-                if (data_.t=="🍎") ctx.drawImage(img_arbol, (x * scaleX)+ camaraX -20, (y * scaleY)+ camaraY -30 ,80,90); 
-                if (data_.t=="👽") ctx.drawImage(img_arbol, (x * scaleX)+ camaraX -20, (y * scaleY)+ camaraY -30,80,90); 
-
-                if (data_.t=="🧠") ctx.drawImage(img_roca, (x * scaleX)+ camaraX -5, (y * scaleY)+ camaraY -30 ,55,90); 
-                if (data_.t=="🤬") ctx.drawImage(img_roca, (x * scaleX)+ camaraX -5, (y * scaleY)+ camaraY -30,55,90); 
-
-                if (data_.t=="🍺") ctx.drawImage(img_arbol2, (x * scaleX)+ camaraX -20, (y * scaleY)+ camaraY -30 ,80,90); 
-                if (data_.t=="🤡") ctx.drawImage(img_arbol2, (x * scaleX)+ camaraX -20, (y * scaleY)+ camaraY -30 ,80,90); 
-
-                
-                if (data_.t=="🌟"){
-                    const img = [img_arbusto,img_arbol,img_roca,img_arbol2]
-                    if (!data_.index){
-                        const random = Math.floor(Math.random() * img.length);
-                        data_.index = random
-                    }
-                    if (data_.index==0)ctx.drawImage(img_arbusto, (x * scaleX)+ camaraX - 20, (y * scaleY)+ camaraY ,80,50); 
-                    if (data_.index==1)ctx.drawImage(img_arbol, (x * scaleX)+ camaraX -20, (y * scaleY)+ camaraY -30 ,80,90);
-                    if (data_.index==2)ctx.drawImage(img_roca, (x * scaleX)+ camaraX -5, (y * scaleY)+ camaraY -30 ,55,90); 
-                    if (data_.index==3)ctx.drawImage(img_arbol2, (x * scaleX)+ camaraX -20, (y * scaleY)+ camaraY -30 ,80,90); 
-                } 
-
-            }
-            
-        })
-    })    
-    ctx.globalAlpha = 0.2;
-    ctx.fillText("😃", (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY);
-    ctx.font = "bold 20px 'IBM Plex Mono', monospace"
-    ctx.globalAlpha = 0.4;
-    ctx.fillText(usuario.split('_')[1], (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY-25);
-
+    // jugadores
     for (const key in jugadores) {
         let p = jugadores[key]
         let x = parseInt(p.x)
         let y = parseInt(p.y)
         let visible =(m[x] && m[x][y])?m[x][y]:0
-        ctx.globalAlpha = visible;
-        ctx.fillText("😎", (p.x * scaleX)+ camaraX, (p.y * scaleY)+ camaraY);
-    }    
+        if (visible>0){
+            ctx.globalAlpha = visible;
+            ctx.fillText(key.split('_')[1], (p.x * scaleX)+ camaraX, (p.y * scaleY)+ camaraY-25);
+            ctx.fillText("😎", (p.x * scaleX)+ camaraX, (p.y * scaleY)+ camaraY);
+        }
+    }   
+
+    //
+    npc.map(data=>{
+        ctx.fillText(data.npc, (data.x * scaleX)+ camaraX, (data.y * scaleY)+ camaraY);
+    })
+
+    mapa.map((data,item)=>{
+        let x = item
+        data.map((data_,item_)=>{
+            let y = item_
+            let visible =(m[x] && m[x][y])?m[x][y]:0
+            let v = (visible>0)?visible: (data_.mostrar==true)?0.2:0;
+            if (v>0){
+                if (["🍎", "🌟", "👻", "👽", "🤡", "🤬", "🌲", "🧠", "🔥", "🥩", "🍺"].indexOf(data_.t)>=0) {
+                    
+                    ctx.globalAlpha =v
+                    const img = [img_arbusto,img_arbol,img_roca,img_arbol2]
+                    
+                    // if (data_.t=="👻") 
+                    // if (data_.t=="👽") ctx.fillText("👽", (x * scaleX)+ camaraX, (y * scaleY)+ camaraY);
+                    // if (data_.t=="🤬") ctx.fillText("🤬", (x * scaleX)+ camaraX, (y * scaleY)+ camaraY);
+                    // if (data_.t=="🤡") ctx.fillText("🤡", (x * scaleX)+ camaraX, (y * scaleY)+ camaraY);
+
+                    if (data_.t=="🌲" || data_.t=="👻") ctx.drawImage(img[0], (x * scaleX)+ camaraX - 20, (y * scaleY)+ camaraY ,80,50); 
+                    if (data_.t=="🍎" || data_.t=="👽") ctx.drawImage(img[1], (x * scaleX)+ camaraX -20, (y * scaleY)+ camaraY -30 ,80,90); 
+                    if (data_.t=="🧠" || data_.t=="🤬") ctx.drawImage(img[2], (x * scaleX)+ camaraX -5, (y * scaleY)+ camaraY -30 ,55,90);  
+                    if (data_.t=="🍺" || data_.t=="🤡") ctx.drawImage(img[3], (x * scaleX)+ camaraX -20, (y * scaleY)+ camaraY -30 ,80,90); 
+                    
+
+
+
+                    
+                    if (data_.t=="🌟"){
+                        
+                        if (!data_.index){
+                            const random = Math.floor(Math.random() * img.length);
+                            data_.index = random
+                        }
+                        if (data_.index==0)ctx.drawImage(img_arbusto, (x * scaleX)+ camaraX - 20, (y * scaleY)+ camaraY ,80,50); 
+                        if (data_.index==1)ctx.drawImage(img_arbol, (x * scaleX)+ camaraX -20, (y * scaleY)+ camaraY -30 ,80,90);
+                        if (data_.index==2)ctx.drawImage(img_roca, (x * scaleX)+ camaraX -5, (y * scaleY)+ camaraY -30 ,55,90); 
+                        if (data_.index==3)ctx.drawImage(img_arbol2, (x * scaleX)+ camaraX -20, (y * scaleY)+ camaraY -30 ,80,90); 
+                    } 
+
+                }
+            }
+            
+        })
+    })    
+    ctx.globalAlpha = 0.3;
+    ctx.fillText("😃", (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY);
+    ctx.fillText(usuario.split('_')[1], (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY-25);
+
+     
 }
 
 function visibilidad(){
     let arr = []
-    for(var rad = 0; rad<=360;rad+=1){
+    for(var rad = 0; rad<=360;rad+=2){
         ctx.fillStyle = "white";
         let valid = true
-        for(var radio = 10; radio<=200;radio+=30){
-            let r = clockwiseRotate( {x:(8.7 * scaleX), y:(8.5 * scaleY)}, rad,radio)
-            let x = parseInt(personaje.x-(8.7-(r.x/scaleX)))
+        for(var radio = 10; radio<=200;radio+=20){
+            let r = clockwiseRotate( {x:(8.7 * scaleX), y:(8.7 * scaleY)}, rad,radio)
+            let x = parseInt(personaje.x-(8.5-(r.x/scaleX)))
             let y = parseInt(personaje.y-(8.5-(r.y/scaleY)))
             if (valid) {
                 if (!arr[x]) arr[x]=[]
-                let v = 1 -(radio/150)+0.5
+                let v = 1 -(radio/160)+0.5
                 arr[x][y]=(v>0.2)?((v>1)?1:v):0.2
+                
             }
             if (tope_muro(x,y)) valid =false            
+            // console.log(r.x)
+            if (valid) ctx.fillText("*", r.x,r.y);
         }
     }
    return arr
@@ -192,7 +231,7 @@ function visibilidad(){
 const clockwiseRotate = (center, angle,radius) => {
     var x = radius * Math.sin(Math.PI * 2 * angle / 360);
     var y = radius * Math.cos(Math.PI * 2 * angle / 360);
-
+    
     return {
       x:    (Math.round(x * 100) / 100)+center.x,
       y:    (Math.round(y * 100) / 100)+center.y,
