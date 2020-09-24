@@ -12,15 +12,12 @@ let img_arbusto
 let img_arbol
 let img_arbol2
 let img_roca
-let temp_personaje = {
-    x:0,
-    y:0
-}
+
 let usuario
 let socket
 
 let jugadores = []
-let npc =[]
+let visibilidad = []
 
 function inicializar(el,socket_){
     mapa = el.mapa
@@ -42,69 +39,50 @@ function inicializar(el,socket_){
     socket = socket_
 
     //npc
-    mapa.map((data,item)=>{
-        let x = item
-        data.map((data_,item_)=>{
-            let y = item_
-            if (["👻", "👽", "🤡", "🤬"].indexOf(data_.t)>=0) {
-                npc.push({
-                    npc:data_.t,
-                    x,
-                    y
-                })
-            }
-        })
-    })
+    // mapa.map((data,item)=>{
+    //     let x = item
+    //     data.map((data_,item_)=>{
+    //         let y = item_
+    //         if (["👻", "👽", "🤡", "🤬"].indexOf(data_.t)>=0) {
+    //             npc.push({
+    //                 npc:data_.t,
+    //                 x,
+    //                 y
+    //             })
+    //         }
+    //     })
+    // })
     
     // console.log('npc',npc)
     // jugadores
-    socket.on('room_msg_juego_laberinto', (data) => {
-        if (data.message.type == 'personaje') {
-            jugadores[data.message.usuario]=data.message.personaje
-        }
+    socket.on('actualizacion_usuario', (data) => {
+        // console.log(data.posicion)
+        // console.log(data.usuarios)
+
+        
+
+        camara.x = data.posicion.camara.x
+        camara.y = data.posicion.camara.y
+        personaje.x = data.posicion.pos.x
+        personaje.y = data.posicion.pos.y
+        visibilidad = data.visibilidad
+        actualizar()
+    })
+
+    socket.on('actualizacion_usuarios',(data)=>{
+        jugadores = data.usuarios.map(data=>{
+            return {
+                x:data.pos.x,
+                y:data.pos.y,
+                usuario:data.usuario
+            }
+        })
+        actualizar()
     })
 }
 
 function movimiento (keypress,socket){
-    if (keypress[37] && !tope_muro((personaje.x+0.2) - 0.25,(personaje.y+0.2))){
-        camara.x+=0.5
-        personaje.x-=0.25
-    }
-    if (keypress[38] && !tope_muro((personaje.x+0.2),(personaje.y+0.2)-0.25)){
-        camara.y+=0.5
-        personaje.y-=0.25
-    }
-    if (keypress[39] && !tope_muro((personaje.x+0.2)+0.5,(personaje.y+0.2))){
-        camara.x-=0.5
-        personaje.x+=0.25
-    }
-    if (keypress[40] && !tope_muro((personaje.x+0.2),(personaje.y+0.2)+0.5)){
-        camara.y-=0.5
-        personaje.y+=0.25
-    }   
-
-    if (temp_personaje.x!=personaje.x || temp_personaje.y!=personaje.y){
-        npc.map(data=>{
-            data.x+=0.25
-            data.y+=0.25
-        })
-
-        socket.emit('room_msg', {
-            uniq: "juego_laberinto",
-            my_exclude: true,
-            persistent: false,
-            message: {
-                type: 'personaje',
-                usuario:usuario,
-                personaje:personaje
-            }
-        })
-    }
-
-    temp_personaje.x=personaje.x
-    temp_personaje.y=personaje.y
-
-    
+    socket.emit('usuario_movimiento',{ left:keypress[37],top:keypress[38],right:keypress[39],bottom:keypress[40]})    
 }
 
 
@@ -113,7 +91,11 @@ function actualizar(){
     let camaraY = ((camara.y  * (scaleY/2)))
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    let m = visibilidad()    
+    let m = []
+    visibilidad.map(data=>{
+        if (!m[data.x]) m[data.x]=[]
+        m[data.x][data.y]=data.visible
+    })
     mapa.map((data,item)=>{
         let x = item
         data.map((data_,item_)=>{
@@ -138,22 +120,23 @@ function actualizar(){
     ctx.fillText("😃", (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY);
 
     // jugadores
-    for (const key in jugadores) {
-        let p = jugadores[key]
-        let x = parseInt(p.x)
-        let y = parseInt(p.y)
-        let visible =(m[x] && m[x][y])?m[x][y]:0
-        if (visible>0){
-            ctx.globalAlpha = visible;
-            ctx.fillText(key.split('_')[1], (p.x * scaleX)+ camaraX, (p.y * scaleY)+ camaraY-25);
-            ctx.fillText("😎", (p.x * scaleX)+ camaraX, (p.y * scaleY)+ camaraY);
+    jugadores.map(p=>{
+        if (p.usuario!=usuario){
+            let x = parseInt(p.x)
+            let y = parseInt(p.y)
+            let visible =(m[x] && m[x][y])?m[x][y]:0
+            if (visible>0){
+                ctx.globalAlpha = visible;
+                ctx.fillText(p.usuario.split('_')[1], (p.x * scaleX)+ camaraX, (p.y * scaleY)+ camaraY-25);
+                ctx.fillText("😎", (p.x * scaleX)+ camaraX, (p.y * scaleY)+ camaraY);
+            }
         }
-    }   
-
-    //
-    npc.map(data=>{
-        ctx.fillText(data.npc, (data.x * scaleX)+ camaraX, (data.y * scaleY)+ camaraY);
     })
+
+    // //
+    // npc.map(data=>{
+    //     ctx.fillText(data.npc, (data.x * scaleX)+ camaraX, (data.y * scaleY)+ camaraY);
+    // })
 
     mapa.map((data,item)=>{
         let x = item
@@ -205,44 +188,6 @@ function actualizar(){
      
 }
 
-function visibilidad(){
-    let arr = []
-    for(var rad = 0; rad<=360;rad+=2){
-        ctx.fillStyle = "white";
-        let valid = true
-        for(var radio = 10; radio<=200;radio+=20){
-            let r = clockwiseRotate( {x:(8.7 * scaleX), y:(8.7 * scaleY)}, rad,radio)
-            let x = parseInt(personaje.x-(8.5-(r.x/scaleX)))
-            let y = parseInt(personaje.y-(8.5-(r.y/scaleY)))
-            if (valid) {
-                if (!arr[x]) arr[x]=[]
-                let v = 1 -(radio/160)+0.5
-                arr[x][y]=(v>0.2)?((v>1)?1:v):0.2
-                
-            }
-            if (tope_muro(x,y)) valid =false            
-            // console.log(r.x)
-            if (valid) ctx.fillText("*", r.x,r.y);
-        }
-    }
-   return arr
-}
-
-const clockwiseRotate = (center, angle,radius) => {
-    var x = radius * Math.sin(Math.PI * 2 * angle / 360);
-    var y = radius * Math.cos(Math.PI * 2 * angle / 360);
-    
-    return {
-      x:    (Math.round(x * 100) / 100)+center.x,
-      y:    (Math.round(y * 100) / 100)+center.y,
-    
-    }
-  }
-  
-
-function tope_muro(x,y){
-    return mapa[parseInt(x)] && mapa[parseInt(x)][parseInt(y)] && mapa[parseInt(x)][parseInt(y)].t==3
-}
 
 
 export {inicializar,movimiento,actualizar}

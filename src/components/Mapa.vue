@@ -37,9 +37,6 @@
 
 <script>
 import {
-    generar
-} from './Generador.js'
-import {
     inicializar,
     movimiento,
     actualizar
@@ -131,7 +128,7 @@ export default {
                     delete keysPressed[39]
                     delete keysPressed[40]
                     let p = joy.GetDir();
-                    
+
                     if (p == 'N') keysPressed[38] = true
                     if (p == 'E') keysPressed[39] = true
                     if (p == 'NE') {
@@ -158,8 +155,8 @@ export default {
                         movimiento(keysPressed, this.socket)
                     }
                 }
-                actualizar()
-            }, ((!this.joystick_)?30:10))
+                // actualizar()
+            }, 50)
 
         },
         cerrar_mapa() {
@@ -183,17 +180,11 @@ export default {
     mounted() {
         // console.log(this.servidor_mapa)
         this.nombre_usuario = this.usuario
-        if (this.servidor_mapa.length == 0) {
-            generar(this)
-                .then(() => {
-                    this.iniciar()
-                })
-        } else {
-            console.log(this.servidor_inicio)
-            this.mapa = this.servidor_mapa
-            this.personaje = this.servidor_inicio
-            this.iniciar()
-        }
+
+        console.log(this.servidor_mapa)
+        this.mapa = this.servidor_mapa
+        this.personaje = this.servidor_inicio
+        this.iniciar()
 
     }
 }
@@ -213,7 +204,7 @@ body {
 }
 
 body {
-    background-color: #031011;
+    /* background-color: #031011; */
     font-family: 'IBM Plex Mono', monospace;
     color: #ccc;
 }
@@ -223,7 +214,7 @@ canvas {
     height: 900px;
     position: absolute;
     top: 0;
-    background-color: black;
+    /* background-color: black; */
 }
 
 .container {

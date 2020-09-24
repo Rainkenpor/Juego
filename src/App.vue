@@ -1,17 +1,29 @@
 <template>
 <div id="app">
 
-    <button @click="cargar_mapa">Cargar Mapa</button>
+    <!-- <img class="personaje" :src="require('./assets/fondo.png')" style="width:100%;height:100%" > -->
+
+    <button @click="crear_mapa">Crear Mapa</button>
+
+    <div class="mapas">
+        <div v-for="(item,index) in mapas" :key="index" class="item" @click="cargar_mapa(item.id)">
+           {{item.id}} <b>{{item.nombre}}</b>
+        </div>
+    </div>
+
+    <!-- {{servidor_mapa}} -->
 
     <mapa v-if="mostrar_mapa" :socket="socket" :servidor_mapa="servidor_mapa" :servidor_inicio="servidor_inicio" :usuario="nombre" />
-
-    <!-- <img class="personaje" :src="require(`./assets${carpeta+nombre}`)" :style="{'left':left+'px'}"> -->
 
 </div>
 </template>
 
 <script>
+import fondo from './assets/fondo.png'
 import mapa from './components/Mapa.vue'
+import {
+    generar
+} from './components/Generador.js'
 import io from 'socket.io-client';
 // import kevin from './components/Kevin.vue'
 // import sherlyn from './components/Sherlyn.vue'
@@ -19,6 +31,7 @@ import io from 'socket.io-client';
 
 export default {
     name: 'App',
+    // meta: {  bgImage: fondo },
     data() {
         return {
             nombre: null,
@@ -34,6 +47,8 @@ export default {
             tiempo_caminar: null,
 
             socket: null,
+
+            mapas: []
         }
     },
     components: {
@@ -43,93 +58,137 @@ export default {
         // yeimi
     },
     methods: {
-        cargar_mapa() {
-            this.mostrar_mapa = true
-        },
 
         iniciar_socket() {
-            this.socket = io('https://www.dinnger.com:4003');
+            // this.socket = io('https://www.dinnger.com:4003');
+            this.socket = io('192.168.232.81:3000');
             this.socket.on('connect', () => {
-                console.log('conectado...')
-                // console.log(e)
-                var date = new Date();
-                this.nombre = date.getTime() + '_' + this.nombre
-                let temp_session = {
-                    user_id: 493,
-                    full_name: this.nombre
-                }
-                // console.log(temp_session)
-                this.socket.emit('set_verify_user', temp_session)
+                this.socket.emit('registrar_usuario', this.nombre)
             });
 
-            this.socket.on('get_verify_user', () => {
-                this.socket.emit('room_new', {
-                    id: "juego_laberinto",
-                    name: "juego movimiento",
-                    min_role: 2 //role superior
-                })
-
-                this.socket.emit('room_assign', {
-                    uniq: "juego_laberinto",
-                    role_id: 2 //role superior
-                })
-
+            this.socket.on('listado_mapas', (mapas) => {
+                this.mapas = mapas
             })
 
-            this.socket.emit("room_persistent", "juego_laberinto")
-
-            this.socket.on('room_msg_juego_laberinto', (data) => {
-                if (data.message.type == 'cerrar_mapa') {
-                    this.servidor_mapa = []
-                    this.servidor_inicio = null
-                    this.mostrar_mapa = false
-                }
+            // MAPA
+            // cargar mapa
+            this.socket.on('cargar_mapa', (data) => {
+                this.servidor_mapa = data.mapa
+                this.servidor_inicio = data.inicio
+                this.mostrar_mapa = true
             })
 
-            this.socket.on('room_persistent_juego_laberinto', (data) => {
-                //entrando a la sala
-                if (data && data.length > 0) {
-                    // console.log(data)
-                    let arr = data.filter(data => data.message.type == 'juego_mapa')
-                    if (arr.length > 0) {
-                        this.servidor_mapa = arr[0].message.mapa
-                        this.servidor_inicio = arr[0].message.inicio
-                        this.mostrar_mapa = true
-                    }
+            // this.socket.on('cargar_mapa', (data) => {
+            //     this.servidor_mapa = data.mapa
+            //     this.servidor_inicio = data.inicio
+            //     this.mostrar_mapa = true
+            // })
 
-                    
-                }
+            // this.socket.emit("room_persistent", "juego_laberinto")
 
-            });
+            // this.socket.on('room_msg_juego_laberinto', (data) => {
+            //     if (data.message.type == 'cerrar_mapa') {
+            //         this.servidor_mapa = []
+            //         this.servidor_inicio = null
+            //         this.mostrar_mapa = false
+            //     }
+            // })
+
+            // this.socket.on('room_persistent_juego_laberinto', (data) => {
+            //     //entrando a la sala
+            //     if (data && data.length > 0) {
+            //         // console.log(data)
+            //         let arr = data.filter(data => data.message.type == 'juego_mapa')
+            //         if (arr.length > 0) {
+            //             this.servidor_mapa = arr[0].message.mapa
+            //             this.servidor_inicio = arr[0].message.inicio
+            //             this.mostrar_mapa = true
+            //         }
+
+            //     }
+
+            // });
 
             // this.socket.on('event', function (data) {});
             // this.socket.on('disconnect', function () {});
+        },
+
+        crear_mapa() {
+            let nombre = prompt("Nombre del Mapa", "").substring(0, 50)
+            if (nombre != null && nombre.trim() != ""){
+                generar()
+                .then(resp => {
+
+                    // console.log(resp.inicio)
+                    this.socket.emit('crear_mapa', {
+                        nombre: nombre.trim(),
+                        mapa: resp.mapa,
+                        inicio: resp.inicio
+                    })
+                })
+            }
+        },
+
+        cargar_mapa(id){
+            this.socket.emit('cargar_mapa', id)
         }
     },
     mounted() {
 
+        document.body.style.backgroundImage = `url(${fondo})`;
+
+        this.nombre = localStorage.getItem('nombre');
         while (this.nombre == null || this.nombre.trim() == "") {
-            this.nombre = prompt("Nombre del Jugador", "").substring(0,10)
+            this.nombre = prompt("Nombre del Jugador", "").substring(0, 10)
+            var date = new Date();
+            this.nombre = date.getTime() + '_' + this.nombre
+            localStorage.setItem('nombre', this.nombre);
         }
 
         this.iniciar_socket()
     }
-
 }
 </script>
 
 <style>
+@font-face {
+    font-family: fuente;
+    src: url(./assets/font/ArchitectsDaughter.ttf);
+}
+
 body {
     margin: 0;
     position: absolute;
     height: 100%;
     width: 100%;
-    /* background-image: url('https://cdnb.artstation.com/p/assets/images/images/008/107/625/large/henrique-percu-oliveira-highresscreenshot00002.jpg?1510540979'); */
+    font-family: fuente;
+    /* background-image: url(${to.meta.bgImage}); */
 }
 
 .personaje {
     height: 150px;
     position: absolute;
     top: 0
+}
+
+.mapas {
+    background-color: white;
+    box-shadow: 0px 0px 20px rgba(96, 125, 139, 1);
+    padding: 20px;
+    position: relative;
+    margin: auto;
+    margin-top: 20px;
+    width: 80%;
+    border-radius: 20px;
+}
+
+.mapas .item {
+    padding: 10px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.mapas .item:hover {
+    text-shadow: 0 0 10px rgba(33, 150, 243, 1.0);
 }
 </style>

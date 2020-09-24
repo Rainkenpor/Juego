@@ -1,4 +1,11 @@
-function generar (el){
+function generar (){
+    let el = {
+        mapa:[],
+        personaje:{
+            x:0,
+            y:0
+        }
+    }
     return new Promise(resolve=>{
 
         var __spreadArrays = this && this.__spreadArrays || function () {
@@ -186,7 +193,7 @@ function generar (el){
                 this.index = index;
                 this.chars = chars;
                 this.colors = colors;
-                this.ctx.font = this.font;
+                // this.ctx.font = this.font;
                 this.frameCounter = 0;
                 this.stepCounter = 0;
                 this.pathCounter = 0;
@@ -228,11 +235,11 @@ function generar (el){
                             for (var i = 0; i < map[_this.asciiLineCounter].length; i++) {
                                 var tile = map[_this.asciiLineCounter][i];
                             }
-                            _this.drawChunkLines();
+                            // _this.drawChunkLines();
                             _this.asciiLineCounter++;
                         } else {
-                            ctx.fillStyle = _this.colors.bg;
-                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            // ctx.fillStyle = _this.colors.bg;
+                            // ctx.fillRect(0, 0, canvas.width, canvas.height);
                             for (i = 0; i < map.length; i++) {
                                 for (var j = 0; j < map[i].length; j++) {
                                     // el.mapa[j] = []
@@ -248,15 +255,15 @@ function generar (el){
                     function () {
                         if (_this.mobCounter < _this.mobs.length) {
                             var mob = _this.mobs[_this.mobCounter];
-                            ctx.fillStyle = _this.colors.bg;
-                            _this.ctx.fillRect(mob.x * _this.scaleX, mob.y * _this.scaleY, _this.scaleX, _this.scaleY);
-                            ctx.textBaseline = "top";
-                            _this.ctx.fillText(mob.char, mob.x * _this.scaleX, mob.y * _this.scaleY);
+                            // ctx.fillStyle = _this.colors.bg;
+                            // _this.ctx.fillRect(mob.x * _this.scaleX, mob.y * _this.scaleY, _this.scaleX, _this.scaleY);
+                            // ctx.textBaseline = "top";
+                            // _this.ctx.fillText(mob.char, mob.x * _this.scaleX, mob.y * _this.scaleY);
                             el.mapa[mob.x][mob.y]={t:mob.char,mostrar:false}
                             _this.mobCounter++;
                         } else {
                             _this.stepCounter++;
-                            resolve(true)
+                            resolve({mapa:el.mapa,inicio:el.personaje})
                         }
                     }
                 ];
@@ -305,16 +312,16 @@ function generar (el){
                 }
                 return mobs;
             };
-            Visualization.prototype.drawChunkLines = function () {
-                var _this = this;
-                this.ctx.strokeStyle = this.colors.chunkLine;
-                this.ctx.lineWidth = 1;
-                this.root.
-                getChunks().
-                forEach(function (e) {
-                    return _this.ctx.strokeRect(e.x * _this.scaleX, e.y * _this.scaleY, e.w * _this.scaleX, e.h * _this.scaleY);
-                });
-            };
+            // Visualization.prototype.drawChunkLines = function () {
+            //     var _this = this;
+            //     // this.ctx.strokeStyle = this.colors.chunkLine;
+            //     // this.ctx.lineWidth = 1;
+            //     this.root.
+            //     getChunks().
+            //     forEach(function (e) {
+            //         return _this.ctx.strokeRect(e.x * _this.scaleX, e.y * _this.scaleY, e.w * _this.scaleX, e.h * _this.scaleY);
+            //     });
+            // };
             Visualization.prototype.tick = function (animDelay) {
                 if (this.frameCounter % animDelay == 0 &&
                     this.stepCounter < this.steps.length) {
@@ -325,8 +332,8 @@ function generar (el){
             return Visualization;
         }();
         // ---------------- Main
-        var canvas = document.querySelector(".screen") || new HTMLCanvasElement();
-        var ctx = canvas.getContext("2d") || new CanvasRenderingContext2D();
+        // var canvas = document.querySelector(".screen") || new HTMLCanvasElement();
+        // var ctx = canvas.getContext("2d") || new CanvasRenderingContext2D();
         var RNG = Math.random;
         var v
         var inputs = {
@@ -430,7 +437,7 @@ function generar (el){
             placeWalls();
             placePaths();
             placeRooms();
-            v = new Visualization(root, map, canvas, ctx, "bold 20px 'IBM Plex Mono', monospace", 50, ["🍎", "🌟", "👻", "👽", "🤡", "🤬", "🌲", "🧠", "🔥", "🥩", "🍺","😃"], {
+            v = new Visualization(root, map, null, null, "bold 20px 'IBM Plex Mono', monospace", 50, ["🍎", "🌟", "👻", "👽", "🤡", "🤬", "🌲", "🧠", "🔥", "🥩", "🍺","😃"], {
                 wall: 3,
                 path: 2,
                 room: 1
@@ -448,8 +455,8 @@ function generar (el){
                 bg: "#031011"
             });
 
-            ctx.fillStyle = "#031011";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // ctx.fillStyle = "#031011";
+            // ctx.fillRect(0, 0, canvas.width, canvas.height);
         };
         var loop = function () {
             v.tick(inputs.animDelay);
