@@ -16,8 +16,12 @@ let temp_personaje = {
     x:0,
     y:0
 }
+let usuario
+let socket
 
-function inicializar(el){
+let jugadores = []
+
+function inicializar(el,socket_){
     mapa = el.mapa
     personaje = el.personaje
     camara = el.camara
@@ -30,8 +34,26 @@ function inicializar(el){
     img_roca = document.getElementById("roca");
     canvas = document.querySelector(".screen") || new HTMLCanvasElement();
     ctx = canvas.getContext("2d") || new CanvasRenderingContext2D();
-    ctx.font = "bold 25px 'IBM Plex Mono', monospace"
+    
     ctx.textBaseline = "top";
+    // console.log(el)
+    usuario = el.nombre_usuario
+    socket = socket_
+
+    // jugadores
+    socket.on('room_msg_juego_laberinto', (data) => {
+        if (data.message.type == 'personaje') {
+            // console.log(data.message)
+            console.log(data.message.usuario,data.message.personaje)
+            jugadores[data.message.usuario]=data.message.personaje
+        }
+    })
+
+    setInterval(()=>{
+        actualizar()    
+    },20)
+
+
 }
 
 function movimiento (keypress,socket){
@@ -50,15 +72,16 @@ function movimiento (keypress,socket){
     if (keypress[40] && !tope_muro((personaje.x+0.2),(personaje.y+0.2)+0.5)){
         camara.y-=0.5
         personaje.y+=0.25
-    }
+    }   
 
     if (temp_personaje.x!=personaje.x || temp_personaje.y!=personaje.y){
         socket.emit('room_msg', {
             uniq: "juego_laberinto",
-            my_exclude: false,
+            my_exclude: true,
             persistent: false,
             message: {
                 type: 'personaje',
+                usuario:usuario,
                 personaje:personaje
             }
         })
@@ -67,7 +90,7 @@ function movimiento (keypress,socket){
     temp_personaje.x=personaje.x
     temp_personaje.y=personaje.y
 
-    actualizar()    
+    
 }
 
 
@@ -93,6 +116,7 @@ function actualizar(){
         })
     })
 
+    ctx.font = "bold 25px 'IBM Plex Mono', monospace"
     ctx.globalAlpha = 1;
     ctx.fillText("😃", (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY);
 
@@ -132,6 +156,20 @@ function actualizar(){
             
         })
     })    
+    ctx.globalAlpha = 0.2;
+    ctx.fillText("😃", (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY);
+    ctx.font = "bold 20px 'IBM Plex Mono', monospace"
+    ctx.globalAlpha = 0.4;
+    ctx.fillText(usuario.split('_')[1], (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY-25);
+
+    for (const key in jugadores) {
+        let p = jugadores[key]
+        let x = parseInt(p.x)
+        let y = parseInt(p.y)
+        let visible =(m[x] && m[x][y])?m[x][y]:0
+        ctx.globalAlpha = visible;
+        ctx.fillText("😎", (p.x * scaleX)+ camaraX, (p.y * scaleY)+ camaraY);
+    }    
 }
 
 function visibilidad(){

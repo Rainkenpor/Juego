@@ -1,11 +1,11 @@
 <template>
 <div>
 
-<button v-if="mostrar_finalizar" @click="cerrar_mapa" style="position: absolute; top: 0px;left:100px;z-index: 99;background-color: black;border: 1px solid #111;">Cerrar Mapa</button>
+    <button v-if="mostrar_finalizar" @click="cerrar_mapa" style="position: absolute; top: 0px;left:100px;z-index: 99;background-color: black;border: 1px solid #111;">Cerrar Mapa</button>
     <div style="color:white;font-size:20px" v-if="!visible_canvas">
         Cargando...
     </div>
-    
+
     <canvas width="900" height="900" class="screen" v-show="visible_canvas"></canvas>
 
     <div style="background-color:white;position:absolute;" v-show="false">
@@ -26,7 +26,7 @@
     <div style="position:absolute;top:900px;left:350px">
 
         <button v-if="joystick_==false" @click="joystick_=true">Habilitar JoyStick</button>
-        
+
         <!-- <div  style="position:relative;overflow:hidden"> -->
         <div v-show="joystick_" id="joyDiv" style="width:200px;height:200px"></div>
         <!-- </div> -->
@@ -62,7 +62,8 @@ export default {
             jugadores: [],
             joystick_: true,
             visible_canvas: false,
-            mostrar_finalizar: false
+            mostrar_finalizar: false,
+            nombre_usuario: null
         }
     },
     props: {
@@ -72,17 +73,17 @@ export default {
         servidor_mapa: {
             default: []
         },
-        servidor_personaje: {
+        servidor_inicio: {
             default: null
         },
-        usuario:{
-            default:null
+        usuario: {
+            default: null
         }
     },
     methods: {
         iniciar() {
             // inicializando mapa
-            inicializar(this)
+            inicializar(this,this.socket)
             this.joystick_ = false
             this.visible_canvas = true
             let keysPressed = []
@@ -92,7 +93,8 @@ export default {
             // actualización de camara
             actualizar()
 
-            if (this.servidor_personaje == null) {
+            if (this.servidor_inicio == null) {
+                // console.log('iniciando')
                 this.socket.emit('room_msg', {
                     uniq: "juego_laberinto",
                     my_exclude: false,
@@ -100,18 +102,15 @@ export default {
                     message: {
                         type: 'juego_mapa',
                         mapa: this.mapa,
-                        personaje:[
-                            {
-                                usuario:this.usuario,
-                                personaje:this.personaje
-                            }
-                        ] 
+                        inicio:this.personaje,
+                        
                     }
                 })
-            } 
+            }
+
+            
 
             this.mostrar_finalizar = true
-            
 
             document.addEventListener('keydown', (event) => {
                 keysPressed[event.keyCode] = true;
@@ -124,13 +123,13 @@ export default {
             setInterval(() => {
                 if (!this.joystick_) {
                     if (keysPressed[37] || keysPressed[38] || keysPressed[39] || keysPressed[40]) {
-                        movimiento(keysPressed,this.socket)
+                        movimiento(keysPressed, this.socket)
                     }
                 }
             }, 30)
 
             var joy = new JoyStick('joyDiv');
-            setInterval(()=> {
+            setInterval(() => {
                 if (this.joystick_) {
 
                     delete keysPressed[37]
@@ -162,12 +161,13 @@ export default {
 
                     // console.log(p)
                     if (keysPressed[37] || keysPressed[38] || keysPressed[39] || keysPressed[40]) {
-                        movimiento(keysPressed,this.socket)
+                        movimiento(keysPressed, this.socket)
                     }
                 }
             }, 30);
         },
         cerrar_mapa() {
+            //destruyendo datos persistentes
             this.socket.emit('room_persistent_destroy', {
                 idroom: "juego_laberinto",
                 type: 'juego_mapa',
@@ -186,15 +186,16 @@ export default {
     },
     mounted() {
         // console.log(this.servidor_mapa)
+        this.nombre_usuario = this.usuario
         if (this.servidor_mapa.length == 0) {
             generar(this)
                 .then(() => {
                     this.iniciar()
                 })
         } else {
-            console.log(this.servidor_personaje)
+            console.log(this.servidor_inicio)
             this.mapa = this.servidor_mapa
-            this.personaje = this.servidor_personaje[0].personaje
+            this.personaje = this.servidor_inicio
             this.iniciar()
         }
 

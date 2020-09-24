@@ -278,6 +278,7 @@ function generar (el){
                 }
                 return floors;
             };
+            
             Visualization.prototype.getMobs = function () {
                 var mobs = [];
                 var floors = this.getFloors();

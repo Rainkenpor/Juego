@@ -3,7 +3,7 @@
 
     <button @click="cargar_mapa">Cargar Mapa</button>
 
-    <mapa v-if="mostrar_mapa" :socket="socket" :servidor_mapa="servidor_mapa" :servidor_personaje="servidor_personaje"  :usuario="nombre"/>
+    <mapa v-if="mostrar_mapa" :socket="socket" :servidor_mapa="servidor_mapa" :servidor_inicio="servidor_inicio" :usuario="nombre" />
 
     <!-- <img class="personaje" :src="require(`./assets${carpeta+nombre}`)" :style="{'left':left+'px'}"> -->
 
@@ -24,7 +24,7 @@ export default {
             nombre: null,
             mostrar_mapa: false,
             servidor_mapa: [],
-            servidor_personaje: null,
+            servidor_inicio: null,
 
             left: 0,
 
@@ -76,20 +76,13 @@ export default {
 
             })
 
-
             this.socket.emit("room_persistent", "juego_laberinto")
 
             this.socket.on('room_msg_juego_laberinto', (data) => {
-                
                 if (data.message.type == 'cerrar_mapa') {
                     this.servidor_mapa = []
-                    this.servidor_personaje = null
+                    this.servidor_inicio = null
                     this.mostrar_mapa = false
-                }
-
-
-                if (data.message.type=='personaje'){
-                    console.log(data.message)
                 }
             })
 
@@ -100,11 +93,13 @@ export default {
                     let arr = data.filter(data => data.message.type == 'juego_mapa')
                     if (arr.length > 0) {
                         this.servidor_mapa = arr[0].message.mapa
-                        this.servidor_personaje = arr[0].message.personaje
+                        this.servidor_inicio = arr[0].message.inicio
                         this.mostrar_mapa = true
                     }
+
+                    
                 }
-                
+
             });
 
             // this.socket.on('event', function (data) {});
@@ -113,7 +108,7 @@ export default {
     },
     mounted() {
 
-        while (this.nombre == null || this.nombre.trim()=="") {
+        while (this.nombre == null || this.nombre.trim() == "") {
             this.nombre = prompt("Nombre del Jugador", "")
         }
 
