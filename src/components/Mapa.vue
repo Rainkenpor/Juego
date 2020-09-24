@@ -126,6 +126,7 @@ export default {
                         movimiento(keysPressed, this.socket)
                     }
                 }
+                actualizar()
             }, 30)
 
             var joy = new JoyStick('joyDiv');

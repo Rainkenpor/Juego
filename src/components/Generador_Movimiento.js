@@ -49,9 +49,6 @@ function inicializar(el,socket_){
         }
     })
 
-    setInterval(()=>{
-        actualizar()    
-    },20)
 
 
 }
