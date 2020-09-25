@@ -437,7 +437,7 @@ function generar (){
             placeWalls();
             placePaths();
             placeRooms();
-            v = new Visualization(root, map, null, null, "bold 20px 'IBM Plex Mono', monospace", 50, ["🤖", "🌟", "👻", "👽", "🤡", "🤬", "🌲", "🧠", "🔥", "🥩", "🍺","😃"], {
+            v = new Visualization(root, map, null, null, "bold 20px 'IBM Plex Mono', monospace", 50, ["💀", "🌟", "👻", "👽", "🤡", "🤬", "🌲", "🧠", "🔥", "🥩", "🍺","😃"], {
                 wall: 3,
                 path: 2,
                 room: 1

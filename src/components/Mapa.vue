@@ -21,9 +21,13 @@
         <img id="arbol" :src="require(`../assets/mapa/Objects/Ridges/4.png`)">
         <img id="arbol2" :src="require(`../assets/mapa/Objects/Willows/1.png`)">
         <img id="roca" :src="require(`../assets/mapa/Objects/Stones/1.png`)">
+
+        <audio  ref="sonido_pasos" controls loop><source :src="require(`../assets/sound/pasos.wav`)" type="audio/wav" /></audio>
+        
         <!-- <img id="camino" :src="require(`../assets/mapa/Tiles/Tile_58.png`)"> -->
         <!-- {{personaje}} -->
     </div>
+    
 
     <div style="position:absolute;bottom:10px;right:10px">
         <button v-if="joystick_==false" @click="mostrar_joystick" style="padding:5px">JoyStick</button>
@@ -99,8 +103,7 @@ export default {
                     message: {
                         type: 'juego_mapa',
                         mapa: this.mapa,
-                        inicio: this.personaje,
-
+                        inicio: this.personaje
                     }
                 })
             }
@@ -108,10 +111,13 @@ export default {
             this.mostrar_finalizar = true
 
             document.addEventListener('keydown', (event) => {
+                this.$refs["sonido_pasos"].play()
+                
                 keysPressed[event.keyCode] = true;
             });
 
             document.addEventListener('keyup', (event) => {
+                this.$refs["sonido_pasos"].pause()
                 delete keysPressed[event.keyCode];
             });
 

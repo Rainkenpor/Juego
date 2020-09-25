@@ -66,7 +66,7 @@ io.on('connection', (socket) => {
 
         mapa_.mapa.map((item,x)=>{
             item.map((item_,y)=>{
-                if (["🤖", "👻", "👽", "🤡", "🤬"].indexOf(item_.t)>=0){
+                if (["💀", "👻", "👽", "🤡", "🤬"].indexOf(item_.t)>=0){
                     npcs[mapa_index].push({
                         x,
                         y,
@@ -178,9 +178,9 @@ const npc_visibilidad = (mapa_index,npc)=>{
 
     if (npc.npc=='👻') velocidad=0.025
     if (npc.npc=='🤬') velocidad=0.04
-    if (npc.npc=="🤖") velocidad = 0.01
+    if (npc.npc=="💀") velocidad = 0.01
     if (npc.npc=='🤬') vida=0.6
-    if (npc.npc=="🤖")  vida = 1.5
+    if (npc.npc=="💀")  vida = 2
 
     for(var rad = 0; rad<=360;rad+=10){
         let valid = true
@@ -190,7 +190,10 @@ const npc_visibilidad = (mapa_index,npc)=>{
             let x = parseInt(npc.x-(8.5-(r.x/scaleX)))
             let y = parseInt(npc.y-(8.5-(r.y/scaleY)))
             if (valid) { 
-                
+                let usuario_cercano = {
+                    usuario_id:null,
+                    distancia:9999
+                }
                 // buscando si hay un usuario dentro del rango
                 for (const key in usuarios[mapa_index]) {
                     let data = usuarios[mapa_index][key]
@@ -198,12 +201,16 @@ const npc_visibilidad = (mapa_index,npc)=>{
                     // arr.push(data)
                     if (!usuario_encontrado[key] && data.vida>0){
                         if (parseInt(data.pos.x) == x && parseInt(data.pos.y)==y){
-                            npc.x += (data.pos.x > npc.x ) ?velocidad:-velocidad
-                            npc.y += (data.pos.y > npc.y ) ?velocidad:-velocidad
-                            
+
+                            let distancia =Math.sqrt( (data.pos.x - x) * (data.pos.x - x) + (data.pos.y - y) * (data.pos.y - y));
+                            if (usuario_cercano.distancia>distancia){
+                                usuario_cercano.distancia=distancia
+                                usuario_cercano.usuario_id=key
+                            }
+
                             //agregando estados
                             data.estados.push(npc.npc)
-                            
+
                             if (parseInt(npc.x) == parseInt(data.pos.x) &&  parseInt(npc.y) == parseInt(data.pos.y)){
                                 data.vida-=vida
                                 if (data.vida<0) data.vida=0
@@ -211,10 +218,19 @@ const npc_visibilidad = (mapa_index,npc)=>{
                             usuario_encontrado[key] = true
                         }
                     }
+                    // movimiento al mas cercano
+                    if (usuario_cercano.usuario_id!=null){
+                        // console.log('1')
+                        let x = npc.x + ((usuarios[mapa_index][usuario_cercano.usuario_id].pos.x +0.1 > npc.x ) ?velocidad:-velocidad)
+                        let y = npc.y + ((usuarios[mapa_index][usuario_cercano.usuario_id].pos.y +0.1 > npc.y ) ?velocidad:-velocidad)
+                        // if (npc.npc=='👻' || !tope_muro(mapa_index,x,y)){
+                            npc.x = x
+                            npc.y = y
+                        // }
+                    }
                 }
             }
-            if (npc.npc!='👻')
-                if (tope_muro(mapa_index,x,y)) valid =false            
+            if (npc.npc!='👻' && tope_muro(mapa_index,x,y)) valid =false            
             // console.log(r.x)
             // if (valid) ctx.fillText("*", r.x,r.y);
         }
@@ -224,36 +240,50 @@ const npc_visibilidad = (mapa_index,npc)=>{
 
 
 const usuario_movimiento =(mapa_index,usuario_index,left,top,right,bottom)=>{
-     if (left && !tope_muro(mapa_index,(usuarios[mapa_index][usuario_index].pos.x+0.2) - 0.25,(usuarios[mapa_index][usuario_index].pos.y+0.2))){
-        usuarios[mapa_index][usuario_index].camara.x+=0.5
-        usuarios[mapa_index][usuario_index].pos.x-=0.25
+    let velocidad = 0.5
+
+    //efectos de movimiento
+    if (usuarios[mapa_index][usuario_index].estados.indexOf('👻')>=0) velocidad = 0.25
+    // if (usuarios[mapa_index][usuario_index].estados.indexOf('👽')>=0){
+    //     left = !left
+    //     top = !top
+    //     right = !right
+    //     bottom = !bottom
+    // } 
+
+    if (left && !tope_muro(mapa_index,(usuarios[mapa_index][usuario_index].pos.x) - (velocidad/2),(usuarios[mapa_index][usuario_index].pos.y))){
+        
+        usuarios[mapa_index][usuario_index].camara.x+=velocidad
+        usuarios[mapa_index][usuario_index].pos.x-=(velocidad/2)
     }
-    if (top && !tope_muro(mapa_index,(usuarios[mapa_index][usuario_index].pos.x+0.2),(usuarios[mapa_index][usuario_index].pos.y+0.2)-0.25)){
-        usuarios[mapa_index][usuario_index].camara.y+=0.5
-        usuarios[mapa_index][usuario_index].pos.y-=0.25
+    if (top && !tope_muro(mapa_index,(usuarios[mapa_index][usuario_index].pos.x),(usuarios[mapa_index][usuario_index].pos.y)-(velocidad/2))){
+        usuarios[mapa_index][usuario_index].camara.y+=velocidad
+        usuarios[mapa_index][usuario_index].pos.y-=(velocidad/2)
     }
-    if (right && !tope_muro(mapa_index,(usuarios[mapa_index][usuario_index].pos.x+0.2)+0.5,(usuarios[mapa_index][usuario_index].pos.y+0.2))){
-        usuarios[mapa_index][usuario_index].camara.x-=0.5
-        usuarios[mapa_index][usuario_index].pos.x+=0.25
+    if (right && !tope_muro(mapa_index,(usuarios[mapa_index][usuario_index].pos.x)+(velocidad/2)+0.5,(usuarios[mapa_index][usuario_index].pos.y))){
+        usuarios[mapa_index][usuario_index].camara.x-=velocidad
+        usuarios[mapa_index][usuario_index].pos.x+=(velocidad/2)
     }
-    if (bottom && !tope_muro(mapa_index,(usuarios[mapa_index][usuario_index].pos.x+0.2),(usuarios[mapa_index][usuario_index].pos.y+0.2)+0.5)){
-        usuarios[mapa_index][usuario_index].camara.y-=0.5
-        usuarios[mapa_index][usuario_index].pos.y+=0.25
+    if (bottom && !tope_muro(mapa_index,(usuarios[mapa_index][usuario_index].pos.x),(usuarios[mapa_index][usuario_index].pos.y)+(velocidad/2)+0.5)){
+        usuarios[mapa_index][usuario_index].camara.y-=velocidad
+        usuarios[mapa_index][usuario_index].pos.y+=(velocidad/2)
     }   
 }
 
 
 const visibilidad = (mapa_index,usuario)=>{
+    let radio_visible = 200
+    if (usuario.estados.indexOf('👽')>=0) radio_visible = 100
     let arr = []
     for(var rad = 0; rad<=360;rad+=2){
         let valid = true
-        for(var radio = 10; radio<=200;radio+=15){
+        for(var radio = 10; radio<=radio_visible;radio+=15){
             let r = clockwiseRotate( {x:(8.7 * scaleX), y:(8.7 * scaleY)}, rad,radio)
             let x = parseInt(usuario.pos.x-(8.5-(r.x/scaleX)))
             let y = parseInt(usuario.pos.y-(8.5-(r.y/scaleY)))
             if (valid) {
                 
-                let v = 1 -(radio/150)+0.5
+                let v = 1 -(radio/(radio_visible-50))+0.5
                 let p = (v>0.1)?((v>1)?1:v):0.1
                 arr.push({
                     x,

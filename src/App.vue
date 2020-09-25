@@ -7,11 +7,13 @@
 
         <div class="mapas">
             <div v-for="(item,index) in mapas" :key="index" class="item" @click="cargar_mapa(item.id)">
-                {{item.id}} <b>{{item.nombre}}</b>
+                {{item.nombre}}
             </div>
         </div>
     </div>
     <mapa v-else :socket="socket" :servidor_mapa="servidor_mapa" :servidor_inicio="servidor_inicio" :usuario="nombre" />
+
+    <audio ref="audio_fondo"  autoplay loop><source :src="require(`./assets/sound/fondo.wav`)" type="audio/wav" /></audio>
 
 </div>
 </template>
@@ -60,8 +62,8 @@ export default {
         iniciar_socket() {
             // this.socket = io('https://www.dinnger.com:4003');
             // this.socket = io('http://192.168.1.113:3000');
-            this.socket = io('http://54.205.110.51:3000');
-            // this.socket = io('http://192.168.232.81:3000');
+            // this.socket = io('http://54.205.110.51:3000');
+            this.socket = io('http://192.168.232.81:3000');
             this.socket.on('connect', () => {
                 this.socket.emit('registrar_usuario', this.nombre)
             });
@@ -146,6 +148,8 @@ export default {
         }
 
         this.iniciar_socket()
+
+        this.$refs["audio_fondo"].volume = 0.3;
     }
 }
 </script>
@@ -153,7 +157,7 @@ export default {
 <style>
 @font-face {
     font-family: fuente;
-    src: url(./assets/font/ArchitectsDaughter.ttf);
+    src: url(./assets/font/Scream.ttf);
 }
 
 body {
@@ -183,12 +187,12 @@ body {
 }
 
 .mapas .item {
-    padding: 10px;
-    font-size: 20px;
+    padding: 5px;
+    font-size: 18px;
     cursor: pointer;
 }
 
 .mapas .item:hover {
-    text-shadow: 0 0 10px rgba(33, 150, 243, 1.0);
+    text-shadow: 0 0 10px rgba(0,0,0,0.2);
 }
 </style>

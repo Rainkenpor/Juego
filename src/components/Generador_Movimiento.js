@@ -88,7 +88,7 @@ function inicializar(el,socket_){
 }
 
 function movimiento (keypress,socket){
-    socket.emit('usuario_movimiento',{ left:keypress[37],top:keypress[38],right:keypress[39],bottom:keypress[40]})    
+    if (personaje.vida>0)    socket.emit('usuario_movimiento',{ left:keypress[37],top:keypress[38],right:keypress[39],bottom:keypress[40]})    
 }
 
 
@@ -110,11 +110,11 @@ function actualizar(){
             let v = (visible>0)?visible: (data_.mostrar==true && mostrar_laberinto)?0.2:0;
             if (v>0){
                 ctx.globalAlpha =v
-                if (ctx.globalAlpha>0 && mostrar_laberinto) data_.mostrar=true
+                // if (ctx.globalAlpha>0 && mostrar_laberinto) data_.mostrar=true
                 if (data_.t==3) ctx.drawImage(img_muro, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50);
                 if (data_.t==1) ctx.drawImage(img_piso, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50); 
                 if (data_.t==2) ctx.drawImage(img_camino, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50); 
-                if (["🍎", "🌟", "👻", "👽", "🤡", "🤬", "🌲", "🧠", "🔥", "🥩", "🍺","😀"].indexOf(data_.t)>=0) {
+                if (["💀", "🌟", "👻", "👽", "🤡", "🤬", "🌲", "🧠", "🔥", "🥩", "🍺","😀"].indexOf(data_.t)>=0) {
                     ctx.drawImage(img_piso, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50); 
                 }
             }
@@ -132,7 +132,7 @@ function actualizar(){
     ctx.fillRect( (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY-10,(parseInt(personaje.vida*50/100)),5);
 
     ctx.font = "bold 25px 'IBM Plex Mono', monospace"
-    ctx.fillText( (personaje.estados? (personaje.estados["🤬"]?"😨":personaje.estados["👻"]?"😱":personaje.estados["👽"]?"😵":personaje.estados["🤡"]?"😖":"😃"):"😃"), (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY);
+    ctx.fillText( (personaje.estados? (personaje.estados["🤬"]?"😨":personaje.estados["👻"]?"😱":personaje.estados["👽"]?"😵":personaje.estados["🤡"]?"😖":personaje.estados["💀"]?"😭":"😃"):(personaje.vida>0)?"😃":"🤯"), (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY);
     
 
     // jugadores
