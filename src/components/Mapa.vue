@@ -6,12 +6,14 @@
         Cargando...
     </div>
 
-    <canvas width="900" height="900" class="screen" v-show="visible_canvas"></canvas>
+    <div style="position:absolute;width:100%;height:100%;overflow:hidden">
+        <canvas width="900" height="900" class="screen" :style="{'transform': 'scale('+((joystick_)?0.5:1)+')'}" v-show="visible_canvas"></canvas>
+    </div>
 
     <div style="background-color:white;position:absolute;" v-show="false">
-        <img id="muro" :src="require(`../assets/mapa/Tiles/Tile_31.png`)">
-        <img id="piso" :src="require(`../assets/mapa/Tiles/Tile_12.png`)">
-        <img id="camino" :src="require(`../assets/mapa/Tiles/Tile_58.png`)">
+        <img id="muro" :src="require(`../assets/mapa/Tiles/muro.png`)">
+        <img id="piso" :src="require(`../assets/mapa/Tiles/grama.png`)">
+        <img id="camino" :src="require(`../assets/mapa/Tiles/grama.png`)">
 
         <img id="caja" :src="require(`../assets/mapa/Objects/Boxes/1.png`)">
 
@@ -21,15 +23,11 @@
         <img id="roca" :src="require(`../assets/mapa/Objects/Stones/1.png`)">
         <!-- <img id="camino" :src="require(`../assets/mapa/Tiles/Tile_58.png`)"> -->
         <!-- {{personaje}} -->
-
     </div>
-    <div style="position:absolute;top:900px;left:350px">
 
-        <button v-if="joystick_==false" @click="joystick_=true">Habilitar JoyStick</button>
-
-        <!-- <div  style="position:relative;overflow:hidden"> -->
-        <div v-show="joystick_" id="joyDiv" style="width:200px;height:200px"></div>
-        <!-- </div> -->
+    <div style="position:absolute;bottom:10px;right:10px">
+        <button v-if="joystick_==false" @click="mostrar_joystick" style="padding:5px">JoyStick</button>
+        <div v-show="joystick_" id="joyDiv" style="width:100px;height:100px"></div>
     </div>
 
 </div>
@@ -39,7 +37,8 @@
 import {
     inicializar,
     movimiento,
-    actualizar
+    actualizar,
+    actualizar_joystick
 } from './Generador_Movimiento.js'
 
 import JoyStick from '../assets/js/joy.js'
@@ -156,7 +155,7 @@ export default {
                     }
                 }
                 // actualizar()
-            }, 50)
+            }, 40)
 
         },
         cerrar_mapa() {
@@ -175,13 +174,18 @@ export default {
                 }
             })
 
+        },
+
+        mostrar_joystick(){
+            this.joystick_=true;
+            actualizar_joystick(false)
         }
     },
     mounted() {
         // console.log(this.servidor_mapa)
         this.nombre_usuario = this.usuario
 
-        console.log(this.servidor_mapa)
+        // console.log(this.servidor_mapa)
         this.mapa = this.servidor_mapa
         this.personaje = this.servidor_inicio
         this.iniciar()
@@ -210,10 +214,16 @@ body {
 }
 
 canvas {
-    width: 900px;
-    height: 900px;
+    width: 1000px;
+    height: 1000px;
     position: absolute;
-    top: 0;
+    top:  -9999px;
+    left: -9999px;
+    right: -9999px;
+    bottom: -9999px;
+    margin: auto;
+    /* position: absolute;
+    top: 0; */
     /* background-color: black; */
 }
 

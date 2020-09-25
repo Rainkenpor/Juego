@@ -2,18 +2,16 @@
 <div id="app">
 
     <!-- <img class="personaje" :src="require('./assets/fondo.png')" style="width:100%;height:100%" > -->
+    <div v-if="!mostrar_mapa">
+        <button @click="crear_mapa" style="opacity:0.1">Crear Mapa</button>
 
-    <button @click="crear_mapa" style="opacity:0.1">Crear Mapa</button>
-
-    <div class="mapas">
-        <div v-for="(item,index) in mapas" :key="index" class="item" @click="cargar_mapa(item.id)">
-           {{item.id}} <b>{{item.nombre}}</b>
+        <div class="mapas">
+            <div v-for="(item,index) in mapas" :key="index" class="item" @click="cargar_mapa(item.id)">
+                {{item.id}} <b>{{item.nombre}}</b>
+            </div>
         </div>
     </div>
-
-    <!-- {{servidor_mapa}} -->
-
-    <mapa v-if="mostrar_mapa" :socket="socket" :servidor_mapa="servidor_mapa" :servidor_inicio="servidor_inicio" :usuario="nombre" />
+    <mapa v-else :socket="socket" :servidor_mapa="servidor_mapa" :servidor_inicio="servidor_inicio" :usuario="nombre" />
 
 </div>
 </template>
@@ -61,7 +59,7 @@ export default {
 
         iniciar_socket() {
             // this.socket = io('https://www.dinnger.com:4003');
-            this.socket = io('http://54.205.110.51:3000');
+            this.socket = io('http://192.168.1.113:3000');
             this.socket.on('connect', () => {
                 this.socket.emit('registrar_usuario', this.nombre)
             });
@@ -115,21 +113,21 @@ export default {
 
         crear_mapa() {
             let nombre = prompt("Nombre del Mapa", "").substring(0, 50)
-            if (nombre != null && nombre.trim() != ""){
+            if (nombre != null && nombre.trim() != "") {
                 generar()
-                .then(resp => {
+                    .then(resp => {
 
-                    // console.log(resp.inicio)
-                    this.socket.emit('crear_mapa', {
-                        nombre: nombre.trim(),
-                        mapa: resp.mapa,
-                        inicio: resp.inicio
+                        // console.log(resp.inicio)
+                        this.socket.emit('crear_mapa', {
+                            nombre: nombre.trim(),
+                            mapa: resp.mapa,
+                            inicio: resp.inicio
+                        })
                     })
-                })
             }
         },
 
-        cargar_mapa(id){
+        cargar_mapa(id) {
             this.socket.emit('cargar_mapa', id)
         }
     },
