@@ -122,14 +122,14 @@ const visibilidad = (usuario)=>{
     let arr = []
     for(var rad = 0; rad<=360;rad+=2){
         let valid = true
-        for(var radio = 10; radio<=200;radio+=20){
+        for(var radio = 10; radio<=250;radio+=15){
             let r = clockwiseRotate( {x:(8.7 * scaleX), y:(8.7 * scaleY)}, rad,radio)
             let x = parseInt(usuario.pos.x-(8.5-(r.x/scaleX)))
             let y = parseInt(usuario.pos.y-(8.5-(r.y/scaleY)))
             if (valid) {
                 
-                let v = 1 -(radio/160)+0.5
-                let p = (v>0.2)?((v>1)?1:v):0.2
+                let v = 1 -(radio/200)+0.5
+                let p = (v>0.1)?((v>1)?1:v):0.1
                 arr.push({
                     x,
                     y,

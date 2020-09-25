@@ -3,7 +3,7 @@
 
     <!-- <img class="personaje" :src="require('./assets/fondo.png')" style="width:100%;height:100%" > -->
 
-    <button @click="crear_mapa">Crear Mapa</button>
+    <button @click="crear_mapa" style="opacity:0.1">Crear Mapa</button>
 
     <div class="mapas">
         <div v-for="(item,index) in mapas" :key="index" class="item" @click="cargar_mapa(item.id)">
@@ -61,7 +61,7 @@ export default {
 
         iniciar_socket() {
             // this.socket = io('https://www.dinnger.com:4003');
-            this.socket = io('192.168.232.81:3000');
+            this.socket = io('http://54.205.110.51:3000');
             this.socket.on('connect', () => {
                 this.socket.emit('registrar_usuario', this.nombre)
             });
