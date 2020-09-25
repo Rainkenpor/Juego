@@ -53,7 +53,8 @@ export default {
             },
             personaje: {
                 x: 0,
-                y: 0
+                y: 0,
+                estados:[]
             },
             jugadores: [],
             joystick_: true,

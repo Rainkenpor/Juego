@@ -71,15 +71,20 @@ function inicializar(el,socket_){
 
     socket.on('actualizacion_usuarios',(data)=>{
         npcs = data.npcs
+        // console.log(data.usuarios)
         jugadores = data.usuarios.map(data=>{
             return {
                 x:data.pos.x,
                 y:data.pos.y,
-                usuario:data.usuario
+                usuario:data.usuario,
+                vida:data.vida,
+                estados:data.estados
             }
         })
+        
         actualizar()
     })
+    socket.emit('usuario_movimiento',{ left:false,top:false,right:false,bottom:false})   
 }
 
 function movimiento (keypress,socket){
@@ -117,11 +122,17 @@ function actualizar(){
     })
 
     ctx.globalAlpha = 1;
-    ctx.font = "bold 18px 'IBM Plex Mono', monospace"
-    ctx.fillText(usuario.split('_')[1], (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY-25);
+    ctx.fillStyle="white";
+    ctx.font = "bold 12px 'IBM Plex Mono', monospace"
+    ctx.fillText(usuario.split('_')[1] + ' ('+parseInt(personaje.vida)+') ', (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY-25);
+
+    ctx.fillStyle="red";
+    ctx.fillRect( (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY-10,50,5);
+    ctx.fillStyle="green";
+    ctx.fillRect( (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY-10,(parseInt(personaje.vida*50/100)),5);
 
     ctx.font = "bold 25px 'IBM Plex Mono', monospace"
-    ctx.fillText("😃", (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY);
+    ctx.fillText( (personaje.estados? (personaje.estados["🤬"]?"😨":personaje.estados["👻"]?"😱":personaje.estados["👽"]?"😵":personaje.estados["🤡"]?"😖":"😃"):"😃"), (personaje.x * scaleX)+ camaraX, (personaje.y * scaleY)+ camaraY);
     
 
     // jugadores
@@ -132,9 +143,24 @@ function actualizar(){
             let visible =(m[x] && m[x][y])?m[x][y]:0
             if (visible>0){
                 ctx.globalAlpha = visible;
+                ctx.fillStyle="white";
+                ctx.font = "bold 12px 'IBM Plex Mono', monospace"
                 ctx.fillText(p.usuario.split('_')[1], (p.x * scaleX)+ camaraX, (p.y * scaleY)+ camaraY-25);
+                ctx.fillStyle="red";
+                ctx.fillRect( (p.x * scaleX)+ camaraX, (p.y * scaleY)+ camaraY-10,50,5);
+                ctx.fillStyle="green";
+                ctx.fillRect( (p.x * scaleX)+ camaraX, (p.y * scaleY)+ camaraY-10,(parseInt(p.vida*50/100)),5);
+                ctx.font = "bold 25px 'IBM Plex Mono', monospace"
                 ctx.fillText("😎", (p.x * scaleX)+ camaraX, (p.y * scaleY)+ camaraY);
             }
+        }else{
+            // console.log(p.vida)
+            personaje.vida = p.vida
+            personaje.estados = []
+            p.estados.map(data=>{
+                personaje.estados[data] = true
+            })
+             
         }
     })
 
