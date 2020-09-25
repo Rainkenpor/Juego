@@ -62,8 +62,8 @@ export default {
         iniciar_socket() {
             // this.socket = io('https://www.dinnger.com:4003');
             // this.socket = io('http://192.168.1.113:3000');
-            // this.socket = io('http://54.205.110.51:3000');
-            this.socket = io('http://192.168.232.81:3000');
+            this.socket = io('http://54.205.110.51:3000');
+            // this.socket = io('http://192.168.232.81:3000');
             this.socket.on('connect', () => {
                 this.socket.emit('registrar_usuario', this.nombre)
             });
