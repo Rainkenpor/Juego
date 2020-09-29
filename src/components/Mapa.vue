@@ -10,6 +10,8 @@
         <canvas width="900" height="900" class="screen" :style="{'transform': 'scale('+((joystick_)?0.5:1)+')'}" v-show="visible_canvas"></canvas>
     </div>
 
+    <div id="game"></div>
+
     <div style="background-color:white;position:absolute;" v-show="false">
         <img id="muro" :src="require(`../assets/mapa/Tiles/muro.png`)">
         <img id="piso" :src="require(`../assets/mapa/Tiles/grama.png`)">
@@ -38,12 +40,14 @@
 </template>
 
 <script>
-import {
-    inicializar,
-    movimiento,
-    actualizar,
-    actualizar_joystick
-} from './Generador_Movimiento.js'
+// import {
+//     inicializar,
+//     movimiento,
+//     actualizar,
+//     actualizar_joystick
+// } from './Generador_Movimiento.js'
+
+import {generar} from './Generador_Cliente.js'
 
 import JoyStick from '../assets/js/joy.js'
 
@@ -64,7 +68,9 @@ export default {
             joystick_: true,
             visible_canvas: false,
             mostrar_finalizar: false,
-            nombre_usuario: null
+            nombre_usuario: null,
+
+            cliente:null
         }
     },
     props: {
@@ -84,7 +90,7 @@ export default {
     methods: {
         iniciar() {
             // inicializando mapa
-            inicializar(this, this.socket)
+            // inicializar(this, this.socket)
             this.joystick_ = false
             this.visible_canvas = true
             let keysPressed = []
@@ -92,7 +98,7 @@ export default {
             this.camara.y = (17 - (this.personaje.y * 2))
 
             // actualización de camara
-            actualizar()
+            // actualizar()
 
             if (this.servidor_inicio == null) {
                 // console.log('iniciando')
@@ -110,23 +116,23 @@ export default {
 
             this.mostrar_finalizar = true
 
-            document.addEventListener('keydown', (event) => {
-                this.$refs["sonido_pasos"].play()
+            // document.addEventListener('keydown', (event) => {
+            //     this.$refs["sonido_pasos"].play()
                 
-                keysPressed[event.keyCode] = true;
-            });
+            //     keysPressed[event.keyCode] = true;
+            // });
 
-            document.addEventListener('keyup', (event) => {
-                this.$refs["sonido_pasos"].pause()
-                delete keysPressed[event.keyCode];
-            });
+            // document.addEventListener('keyup', (event) => {
+            //     this.$refs["sonido_pasos"].pause()
+            //     delete keysPressed[event.keyCode];
+            // });
 
             var joy = new JoyStick('joyDiv');
 
             setInterval(() => {
                 if (!this.joystick_) {
                     if (keysPressed[37] || keysPressed[38] || keysPressed[39] || keysPressed[40]) {
-                        movimiento(keysPressed, this.socket)
+                        // movimiento(keysPressed, this.socket)
                     }
                 } else {
                     delete keysPressed[37]
@@ -155,10 +161,10 @@ export default {
                         keysPressed[40] = true
                         keysPressed[37] = true
                     }
-
+                    
                     // console.log(p)
                     if (keysPressed[37] || keysPressed[38] || keysPressed[39] || keysPressed[40]) {
-                        movimiento(keysPressed, this.socket)
+                        this.socket.emit('usuario_movimiento',{ left:keysPressed[37],top:keysPressed[38],right:keysPressed[39],bottom:keysPressed[40]}) 
                     }
                 }
                 // actualizar()
@@ -185,7 +191,7 @@ export default {
 
         mostrar_joystick(){
             this.joystick_=true;
-            actualizar_joystick(false)
+            // actualizar_joystick(false)
         }
     },
     mounted() {
@@ -195,7 +201,9 @@ export default {
         // console.log(this.servidor_mapa)
         this.mapa = this.servidor_mapa
         this.personaje = this.servidor_inicio
+        // console.log( this.servidor_inicio)
         this.iniciar()
+        this.cliente = generar(this.socket,this.usuario,this.servidor_mapa)
 
     }
 }

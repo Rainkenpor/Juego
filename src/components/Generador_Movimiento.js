@@ -101,25 +101,40 @@ function actualizar(){
     visibilidad.map(data=>{
         if (!m[data.x]) m[data.x]=[]
         m[data.x][data.y]=data.visible
+        let v = (data.visible>0)?data.visible: (data_.mostrar==true && mostrar_laberinto)?0.2:0;
+        ctx.globalAlpha =v
+
+        let data_ = mapa[data.x][data.y]
+        if (data_.t==3) ctx.drawImage(img_muro, (data.x * scaleX)+ camaraX, (data.y * scaleY)+ camaraY,50,50);
+        if (data_.t==1) ctx.drawImage(img_piso, (data.x * scaleX)+ camaraX, (data.y * scaleY)+ camaraY,50,50); 
+        if (data_.t==2) ctx.drawImage(img_camino, (data.x * scaleX)+ camaraX, (data.y * scaleY)+ camaraY,50,50); 
+        if (["💀", "🌟", "👻", "👽", "🤡", "🤬", "🌲", "🧠", "🔥", "🥩", "🍺","😀"].indexOf(data_.t)>=0) {
+            ctx.drawImage(img_piso, (data.x * scaleX)+ camaraX, (data.y * scaleY)+ camaraY,50,50); 
+        }
     })
-    mapa.map((data,item)=>{
-        let x = item
-        data.map((data_,item_)=>{
-            let y = item_
-            let visible =(m[x] && m[x][y])?m[x][y]:0
-            let v = (visible>0)?visible: (data_.mostrar==true && mostrar_laberinto)?0.2:0;
-            if (v>0){
-                ctx.globalAlpha =v
-                // if (ctx.globalAlpha>0 && mostrar_laberinto) data_.mostrar=true
-                if (data_.t==3) ctx.drawImage(img_muro, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50);
-                if (data_.t==1) ctx.drawImage(img_piso, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50); 
-                if (data_.t==2) ctx.drawImage(img_camino, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50); 
-                if (["💀", "🌟", "👻", "👽", "🤡", "🤬", "🌲", "🧠", "🔥", "🥩", "🍺","😀"].indexOf(data_.t)>=0) {
-                    ctx.drawImage(img_piso, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50); 
-                }
-            }
-        })
-    })
+
+
+    
+    // console.log()
+
+    // mapa.map((data,item)=>{
+    //     let x = item
+    //     data.map((data_,item_)=>{
+    //         let y = item_
+    //         let visible =(m[x] && m[x][y])?m[x][y]:0
+    //         let v = (visible>0)?visible: (data_.mostrar==true && mostrar_laberinto)?0.2:0;
+    //         if (v>0){
+    //             ctx.globalAlpha =v
+    //             // if (ctx.globalAlpha>0 && mostrar_laberinto) data_.mostrar=true
+    //             if (data_.t==3) ctx.drawImage(img_muro, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50);
+    //             if (data_.t==1) ctx.drawImage(img_piso, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50); 
+    //             if (data_.t==2) ctx.drawImage(img_camino, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50); 
+    //             if (["💀", "🌟", "👻", "👽", "🤡", "🤬", "🌲", "🧠", "🔥", "🥩", "🍺","😀"].indexOf(data_.t)>=0) {
+    //                 ctx.drawImage(img_piso, (x * scaleX)+ camaraX, (y * scaleY)+ camaraY,50,50); 
+    //             }
+    //         }
+    //     })
+    // })
 
     ctx.globalAlpha = 1;
     ctx.fillStyle="white";

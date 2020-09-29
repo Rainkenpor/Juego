@@ -13,7 +13,7 @@
     </div>
     <mapa v-else :socket="socket" :servidor_mapa="servidor_mapa" :servidor_inicio="servidor_inicio" :usuario="nombre" />
 
-    <audio ref="audio_fondo"  autoplay loop><source :src="require(`./assets/sound/fondo.wav`)" type="audio/wav" /></audio>
+    <!-- <audio ref="audio_fondo"  autoplay loop><source :src="require(`./assets/sound/fondo.wav`)" type="audio/wav" /></audio> -->
 
 </div>
 </template>
@@ -61,8 +61,8 @@ export default {
 
         iniciar_socket() {
             // this.socket = io('https://www.dinnger.com:4003');
-            // this.socket = io('http://192.168.1.113:3000');
-            this.socket = io('http://54.205.110.51:3000');
+            this.socket = io('http://192.168.1.113:3000');
+            // this.socket = io('http://54.205.110.51:3000');
             // this.socket = io('http://192.168.232.81:3000');
             this.socket.on('connect', () => {
                 this.socket.emit('registrar_usuario', this.nombre)
@@ -125,7 +125,8 @@ export default {
                         this.socket.emit('crear_mapa', {
                             nombre: nombre.trim(),
                             mapa: resp.mapa,
-                            inicio: resp.inicio
+                            inicio: resp.inicio,
+                            min_usuarios:2
                         })
                     })
             }
@@ -149,7 +150,7 @@ export default {
 
         this.iniciar_socket()
 
-        this.$refs["audio_fondo"].volume = 0.3;
+        // this.$refs["audio_fondo"].volume = 0.3;
     }
 }
 </script>
