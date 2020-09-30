@@ -88,7 +88,7 @@ function inicializar(el,socket_){
 }
 
 function movimiento (keypress,socket){
-    if (personaje.vida>0)    socket.emit('usuario_movimiento',{ left:keypress[37],top:keypress[38],right:keypress[39],bottom:keypress[40]})    
+    if (personaje.vida>0) socket.emit('usuario_movimiento',{ left:keypress[37],top:keypress[38],right:keypress[39],bottom:keypress[40]})    
 }
 
 

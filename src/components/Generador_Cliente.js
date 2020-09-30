@@ -5,7 +5,8 @@ import Phaser from "phaser";
 import skeleton from '../assets/img/skeleton8.png'
 import house from '../assets/img/rem_0002.png'
 import fantasma from '../assets/img/mapa1/Enemigos/fantasmas.png'
-import kirby from '../assets/img/mapa1/Personaje/kirby.png'
+import personaje1_4 from '../assets/img/mapa1/Personaje/personaje1_4.png'
+import personaje4_8 from '../assets/img/mapa1/Personaje/personaje4_8.png'
 
 import mapa from '../assets/img/mapa1/Tiles/mapa_mini.png'
 import mapa_borde from '../assets/img/mapa1/Tiles/borde.png'
@@ -93,10 +94,15 @@ function generar(socket,usuario,mapa_estructura){
             frameHeight: 48
         })
 
-        this.load.spritesheet('kirby',kirby,{
-            frameWidth: 113,
-            frameHeight: 148
+        this.load.spritesheet('personaje1_4',personaje1_4,{
+            frameWidth: 64,
+            frameHeight: 105
         })
+        this.load.spritesheet('personaje4_8',personaje4_8,{
+            frameWidth: 64,
+            frameHeight: 105
+        })
+
 
         this.load.image('house', house);
         this.load.image('mapa_borde',mapa_borde);
@@ -114,6 +120,12 @@ function generar(socket,usuario,mapa_estructura){
         size.y = height
 
         
+        // this.add.image(80, 80, 'personaje1_4', 0);
+        // this.add.image(150, 150, 'personaje1_4', 5);
+        // this.add.image(300, 300, 'personaje1_4', 6);
+        // this.add.image(0, 300, 'personaje1_4', 6);
+
+
         this.cameras.main.setSize(width,height);
         
         mapa_estructura.map((data,x)=>{
@@ -312,47 +324,53 @@ function generar(socket,usuario,mapa_estructura){
 
                 this.completados  = 0
 
-                Phaser.GameObjects.Image.call(this, scene, x, y, 'skeleton', 0);
+                Phaser.GameObjects.Image.call(this, scene, x, y, 'personaje1_4', 1);
                 // this.jugador.setCollideWorldBounds(true);
                 this.vida = 100
                 this.vidas = 3
                 this.vida_icono = "❤"
-                this.info = scene.add.text(x, y-1,this.usuario.split('_')[1] +" - " + this.vida_icono.repeat(this.vidas) + this.vida);
+                this.info = scene.add.text(x-20, y+20,this.usuario.split('_')[1] +" - " + this.vida_icono.repeat(this.vidas) + this.vida);
+                this.displayHeight  = 40
+                this.displayWidth  = 40
+                // this.depth = y + 300;
 
-                this.depth = y + 64;
-
-                scene.time.delayedCall(1000, this.changeFrame, [], this);
+                // scene.time.delayedCall(1000, this.changeFrame, [], this);
             },
 
-            changeFrame: function () {
-                this.f++;
-                if (this.f > 20) this.f = 0
-                this.frame = this.texture.get(this.f);
-                scene.time.delayedCall( 1000, this.changeFrame, [], this);
-                // }
-            },
+            // changeFrame: function () {
+            //     this.f++;
+            //     if (this.f > 20) this.f = 0
+            //     this.frame = this.texture.get(this.f);
+            //     scene.time.delayedCall( 1000, this.changeFrame, [], this);
+            //     // }
+            // },
 
-            resetAnimation: function () {
-                this.f = this.anim.startFrame;
+            // resetAnimation: function () {
+            //     this.f = this.anim.startFrame;
 
-                this.frame = this.texture.get(this.offset + this.f);
+            //     this.frame = this.texture.get(this.offset + this.f);
 
-                scene.time.delayedCall(this.anim.speed * 1000, this.changeFrame, [], this);
-            },
+            //     scene.time.delayedCall(this.anim.speed * 1000, this.changeFrame, [], this);
+            // },
 
             update: function (motion, x, y) {
                 if (this.motion != motion) {
                     // this.f = this.anim.startFrame;
                     this.motion = motion
                     this.changeFrame
-                    if (motion == 'idle') return false
+                    if (motion == 'idle'){
+                        this.frame = this.texture.get(0);
+                        return false
+                    }
                 }
 
                 if (motion === 'walk') {
+                    if (this.x>x)this.frame = this.texture.get(1);
+                    if (this.x<x)this.frame = this.texture.get(2);
                     this.x = x
-                    this.y = y-30
+                    this.y = y
                     
-                    this.depth = this.y + 64;
+                    // this.depth = this.y + 300;
                     if (this.usuario==usuario){
                         this.cameras.main.scrollX = this.x - (size.x / 2)
                         this.cameras.main.scrollY = this.y - (size.y / 2)
@@ -365,8 +383,8 @@ function generar(socket,usuario,mapa_estructura){
                         }
                         this.info.alpha = this.alpha
                     }                    
-                    this.info.x = x-3
-                    this.info.y = y-3
+                    this.info.x = x-20
+                    this.info.y = y+20
                     this.info.text =this.usuario.split('_')[1] + " "+ this.vida_icono.repeat(this.vidas) + " "  + parseInt(this.vida) + ' ('+this.completados+')'
                 }
             },

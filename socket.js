@@ -66,7 +66,9 @@ io.on('connection', (socket) => {
             id: mapa_index ,
             nombre:mapa_.nombre,
             inicio:mapa_.inicio,
+            inicios:mapa_.inicios,
             min_usuarios:mapa_.min_usuarios,
+            max_usuarios:mapa_.max_usuarios,
             play:false
         }
         mapas_design[mapa_index] = mapa_.mapa
@@ -104,7 +106,7 @@ io.on('connection', (socket) => {
         socket.play = false
 
         let p = mapas[mapa_index]
-        let pos = p.inicio
+        // let pos = p.inicio
 
         // p.usuarios.push(socket.usuario)
 
@@ -123,6 +125,7 @@ io.on('connection', (socket) => {
                     x:null,
                     y:null
                 },
+                color:null,
                 vidas:3,
                 estados:[],
                 objetos:[],
@@ -130,21 +133,29 @@ io.on('connection', (socket) => {
                 play:false
             }
         }
-        usuarios[mapa_index][socket.usuario].pos.x = pos.x
-        usuarios[mapa_index][socket.usuario].pos.y = pos.y
-
-        usuarios[mapa_index][socket.usuario].camara.x =(17 - (pos.x * 2))
-        usuarios[mapa_index][socket.usuario].camara.y =(17 - (pos.y * 2))
+        
 
         // usuarios[mapa_index][socket.usuario].mapa_index = mapa_index
         let usuarios_mapa = (io.sockets.adapter.rooms[mapa_index])?io.sockets.adapter.rooms[mapa_index].length:0
         console.log('usuarios en mapa: '+(usuarios_mapa+1) + ' de '+p.min_usuarios)
-        if (usuarios_mapa < p.min_usuarios ){
+        if (usuarios_mapa < p.max_usuarios ){
+
+            //obteniendo posicion inicial
+            let pos = mapas[mapa_index].inicios[usuarios_mapa%2]
+            let colores = ['#2196F3','#F44336']
+            
             socket.join(mapa_index);
             socket.emit('cargar_mapa', {
                 inicio:pos,
                 mapa:mapas_design[mapa_index]
             });
+
+            usuarios[mapa_index][socket.usuario].pos.x = pos.x
+            usuarios[mapa_index][socket.usuario].pos.y = pos.y
+            usuarios[mapa_index][socket.usuario].color = colores[usuarios_mapa%2]
+
+            usuarios[mapa_index][socket.usuario].camara.x =(17 - (pos.x * 2))
+            usuarios[mapa_index][socket.usuario].camara.y =(17 - (pos.y * 2))
 
             //iniciando juego
             if (usuarios_mapa +1 == p.min_usuarios) mapas[mapa_index].play = true

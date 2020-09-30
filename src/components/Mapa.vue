@@ -11,27 +11,9 @@
     </div>
 
     <div id="game"></div>
-
-    <div style="background-color:white;position:absolute;" v-show="false">
-        <img id="muro" :src="require(`../assets/mapa/Tiles/muro.png`)">
-        <img id="piso" :src="require(`../assets/mapa/Tiles/grama.png`)">
-        <img id="camino" :src="require(`../assets/mapa/Tiles/grama.png`)">
-
-        <img id="caja" :src="require(`../assets/mapa/Objects/Boxes/1.png`)">
-
-        <img id="arbusto" :src="require(`../assets/mapa/Objects/Bushes/4.png`)">
-        <img id="arbol" :src="require(`../assets/mapa/Objects/Ridges/4.png`)">
-        <img id="arbol2" :src="require(`../assets/mapa/Objects/Willows/1.png`)">
-        <img id="roca" :src="require(`../assets/mapa/Objects/Stones/1.png`)">
-
-        <audio  ref="sonido_pasos" controls loop><source :src="require(`../assets/sound/pasos.wav`)" type="audio/wav" /></audio>
-        
-        <!-- <img id="camino" :src="require(`../assets/mapa/Tiles/Tile_58.png`)"> -->
-        <!-- {{personaje}} -->
-    </div>
     
 
-    <div style="position:absolute;bottom:10px;right:10px">
+    <div style="position:absolute;bottom:20px;right:20px">
         <button v-if="joystick_==false" @click="mostrar_joystick" style="padding:5px">JoyStick</button>
         <div v-show="joystick_" id="joyDiv" style="width:100px;height:100px"></div>
     </div>

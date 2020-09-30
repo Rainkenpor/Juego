@@ -4,7 +4,8 @@ function generar (){
         personaje:{
             x:0,
             y:0
-        }
+        },
+        inicios:[]
     }
     return new Promise(resolve=>{
 
@@ -263,7 +264,39 @@ function generar (){
                             _this.mobCounter++;
                         } else {
                             _this.stepCounter++;
-                            resolve({mapa:el.mapa,inicio:el.personaje})
+
+                            // verificar puntos del mapa
+                            let inicios = []
+                            let primero_x = null
+                            let primero_xy = null
+                            el.mapa.map((data,x)=>{
+                                let primero_y = null
+                                let ultimo_y = null
+                                data.map((data_,y)=>
+                                {
+                                    if (data_.t!=3 && data_.t!=0 && primero_y==null) primero_y= y
+                                    if (data_.t!=3 && data_.t!=0) ultimo_y=y
+                                })
+                                if (primero_y!=null) {
+                                    primero_x=x
+                                    primero_xy = primero_y
+                                }
+                                //registrando posicion abajo izquierda
+                                if (ultimo_y!=null && inicios.length==0) {
+                                    inicios.push({
+                                        x:x,
+                                        y:ultimo_y,
+                                    })
+                                }
+                            })
+                            // if (primero_y!=null && inicios.length==1) {
+                            inicios.push({
+                                x:primero_x,
+                                y:primero_xy,
+                            })
+                            // }
+
+                            resolve({mapa:el.mapa,inicio:el.personaje,inicios:inicios})
                         }
                     }
                 ];
