@@ -14,7 +14,7 @@ import mapa_borde from '../assets/img/mapa1/Tiles/borde.png'
 
 // import JoyStick from '../assets/js/joy.js'
 
-function generar(socket,usuario,mapa_estructura){
+function generar(socket,usuario,mapa_estructura,mapa_puntos){
     
     var config = {
         type: Phaser.WEBGL,
@@ -134,7 +134,7 @@ function generar(socket,usuario,mapa_estructura){
                     if (!this.mapa_vector[x]) this.mapa_vector[x]= []
                     if (data_.t==1 || data_.t==2 || ["💀", "🌟", "👻", "👽", "🤡", "🤬", "🌲", "🧠", "🔥", "🥩", "🍺","😃"].indexOf(data_.t)>=0) this.mapa_vector[x][y] = this.add.image(x * 64, y * 64, 'mapa', 8).setTint(0x2E7D32);
                     if (data_.t==3) this.mapa_vector[x][y] = this.add.image(x * 64, y * 64, 'mapa_borde', 10);
-                    this.mapa_vector[x][y].alpha = 0.1;
+                    this.mapa_vector[x][y].alpha = 0;
                     this.mapa_vector[x][y].cambio = false
                 }
             })
@@ -146,7 +146,7 @@ function generar(socket,usuario,mapa_estructura){
         socket.on('actualizacion_usuario', (data) => {
             this.mapa_vector.map(data=>{
                 data.filter(data_=>data_.cambio).map(data_=>{
-                    data_.alpha=0.1
+                    data_.alpha=0
                     data_.cambio=false
                 })
             })
@@ -162,6 +162,25 @@ function generar(socket,usuario,mapa_estructura){
                     this.mapa_vector[data.x][data.y].cambio = true
                 }
             })
+        })
+
+        socket.on('usuario_murio',(usuario_)=>{
+            if (usuario_==usuario){
+                this.mapa_vector.map(data=>{
+                    data.filter(data_=>data_.cambio).map(data_=>{
+                        data_.alpha=0
+                        data_.cambio=false
+                    })
+                })
+                npcs.map((data_,index)=>{  
+                    if (data_.icono != "🌲")  {
+                        data_.alpha = 0
+                    }else{
+                        this.casas[index].img.alpha = 0
+                    }
+                    
+                })
+            }
         })
 
         // ********************************************************************************************************************************
@@ -207,20 +226,19 @@ function generar(socket,usuario,mapa_estructura){
                 })
             }
 
-            primera_carga = true
-
+            
+            // console.log(data)
+            let puntos = []
             data.usuarios.map(data=>{
-                // console.log(data.objetos)
-                if (!jugadores[data.usuario]){
-                    jugadores[data.usuario]=this.add.existing(new Jugador(data.usuario,this,  data.pos.x * 64, data.pos.y * 64, 'idle'));
-                }else{
-                    jugadores[data.usuario].update('walk', data.pos.x * 64, data.pos.y * 64)
+                if (jugadores[data.usuario]){
+                    if (jugadores[data.usuario].vida != data.vida) jugadores[data.usuario].actualizar_vida(data.vida)
+                    if (jugadores[data.usuario].objetos_completados!= data.objetos_completados) jugadores[data.usuario].actualizar_objetos(data.objetos_completados)
+                    if (!puntos[data.grupo]) puntos[data.grupo]=0
+                    puntos[data.grupo]+=data.objetos_completados
                 }
-                if (jugadores[data.usuario].vida != data.vida) jugadores[data.usuario].actualizar_vida(data.vida)
-                if (jugadores[data.usuario].objetos_completados!= data.objetos_completados) jugadores[data.usuario].actualizar_objetos(data.objetos_completados)
 
-                // console.log(data.usuario,objetos)
                 if (data.usuario==usuario){
+                    if (!primera_carga) jugadores[data.usuario].actualiza_color(data.color)
                     for (const key in data.objetos) {
                         if (data.objetos[key]!=null && !objetos[key]){
                             // npcs[key].actualizar_objetivo(data.objetos[key])
@@ -231,10 +249,25 @@ function generar(socket,usuario,mapa_estructura){
                             objetos[key] = true
                         } 
                     }
-                    // data.objetos
-                    // objetos[]
+                    //validando vida
+                    // console.log(jugadores[data.usuario].vidas,usuario_fin)
+                    // if (jugadores[data.usuario].vidas==0 && !usuario_fin) usuario_fin = true
+                    
+
+                }else{
+                    if (!jugadores[data.usuario]){
+                        jugadores[data.usuario]=this.add.existing(new Jugador(data.usuario,this,  data.pos.x * 64, data.pos.y * 64, 'idle',data.color));
+                    }else{
+                        jugadores[data.usuario].update('walk', data.pos.x * 64, data.pos.y * 64)
+                    }
                 }
             })
+            puntos.map((data,index)=>{
+                if (mapa_puntos[index]!=puntos[index]) mapa_puntos[index] = data
+            })
+            
+
+            primera_carga = true
         })
 
         // ********************************************************************************************************************************
@@ -309,7 +342,7 @@ function generar(socket,usuario,mapa_estructura){
 
         var Jugador = new Phaser.Class({
             Extends: Phaser.GameObjects.Image,
-            initialize: function Jugador(usuario,scene, x, y, motion) {
+            initialize: function Jugador(usuario,scene, x, y, motion,color) {
                 this.startX = x;
                 this.startY = y;
 
@@ -332,6 +365,8 @@ function generar(socket,usuario,mapa_estructura){
                 this.info = scene.add.text(x-20, y+20,this.usuario.split('_')[1] +" - " + this.vida_icono.repeat(this.vidas) + this.vida);
                 this.displayHeight  = 40
                 this.displayWidth  = 40
+                console.log(color)
+                this.tint = color
                 // this.depth = y + 300;
 
                 // scene.time.delayedCall(1000, this.changeFrame, [], this);
@@ -352,7 +387,10 @@ function generar(socket,usuario,mapa_estructura){
 
             //     scene.time.delayedCall(this.anim.speed * 1000, this.changeFrame, [], this);
             // },
-
+            actualiza_color(color){
+                console.log(color)
+                this.tint = color
+            },
             update: function (motion, x, y) {
                 if (this.motion != motion) {
                     // this.f = this.anim.startFrame;

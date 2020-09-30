@@ -1,19 +1,27 @@
 <template>
 <div>
-
-    <button v-if="mostrar_finalizar" @click="cerrar_mapa" style="position: absolute; top: 0px;left:100px;z-index: 99;background-color: black;border: 1px solid #111;">Cerrar Mapa</button>
     <div style="color:white;font-size:20px" v-if="!visible_canvas">
         Cargando...
     </div>
 
-    <div style="position:absolute;width:100%;height:100%;overflow:hidden">
-        <canvas width="900" height="900" class="screen" :style="{'transform': 'scale('+((joystick_)?0.5:1)+')'}" v-show="visible_canvas"></canvas>
+    <div class="tablero" v-if="visible_canvas">
+        <div>
+            {{mapa_tiempo}}
+        </div>
+        <div>
+            Usuarios: {{mapa_usuarios.usuarios}} de {{mapa_usuarios.limite}}
+        </div>
+        <div>
+            <div class="grupo" style="background-color:#2196F3"></div> {{mapa_puntos[0]}}
+            <div class="grupo" style="background-color:#F44336"></div> {{mapa_puntos[1]}}
+        </div>
     </div>
 
-    <div id="game"></div>
-    
-
-    <div style="position:absolute;bottom:20px;right:20px">
+    <div id="game" v-if="mapa_tiempo && usuario_vidas>0"></div>
+    <div v-else class="fin">
+        Fin del Juego
+    </div>
+    <div style="position:absolute;bottom:20px;right:20px" v-if="mapa_tiempo">
         <button v-if="joystick_==false" @click="mostrar_joystick" style="padding:5px">JoyStick</button>
         <div v-show="joystick_" id="joyDiv" style="width:100px;height:100px"></div>
     </div>
@@ -29,7 +37,9 @@
 //     actualizar_joystick
 // } from './Generador_Movimiento.js'
 
-import {generar} from './Generador_Cliente.js'
+import {
+    generar
+} from './Generador_Cliente.js'
 
 import JoyStick from '../assets/js/joy.js'
 
@@ -44,7 +54,7 @@ export default {
             personaje: {
                 x: 0,
                 y: 0,
-                estados:[]
+                estados: []
             },
             jugadores: [],
             joystick_: true,
@@ -52,7 +62,15 @@ export default {
             mostrar_finalizar: false,
             nombre_usuario: null,
 
-            cliente:null
+            cliente: null,
+
+            usuario_vidas:3,
+            mapa_tiempo: '3:00',
+            mapa_puntos: [],
+            mapa_usuarios: {
+                usuarios: 0,
+                limite: 0
+            }
         }
     },
     props: {
@@ -79,11 +97,7 @@ export default {
             this.camara.x = (17 - (this.personaje.x * 2))
             this.camara.y = (17 - (this.personaje.y * 2))
 
-            // actualización de camara
-            // actualizar()
-
             if (this.servidor_inicio == null) {
-                // console.log('iniciando')
                 this.socket.emit('room_msg', {
                     uniq: "juego_laberinto",
                     my_exclude: false,
@@ -97,17 +111,6 @@ export default {
             }
 
             this.mostrar_finalizar = true
-
-            // document.addEventListener('keydown', (event) => {
-            //     this.$refs["sonido_pasos"].play()
-                
-            //     keysPressed[event.keyCode] = true;
-            // });
-
-            // document.addEventListener('keyup', (event) => {
-            //     this.$refs["sonido_pasos"].pause()
-            //     delete keysPressed[event.keyCode];
-            // });
 
             var joy = new JoyStick('joyDiv');
 
@@ -143,36 +146,47 @@ export default {
                         keysPressed[40] = true
                         keysPressed[37] = true
                     }
-                    
+
                     // console.log(p)
                     if (keysPressed[37] || keysPressed[38] || keysPressed[39] || keysPressed[40]) {
-                        this.socket.emit('usuario_movimiento',{ left:keysPressed[37],top:keysPressed[38],right:keysPressed[39],bottom:keysPressed[40]}) 
+                        this.socket.emit('usuario_movimiento', {
+                            left: keysPressed[37],
+                            top: keysPressed[38],
+                            right: keysPressed[39],
+                            bottom: keysPressed[40]
+                        })
                     }
                 }
                 // actualizar()
             }, 40)
 
-        },
-        cerrar_mapa() {
-            //destruyendo datos persistentes
-            this.socket.emit('room_persistent_destroy', {
-                idroom: "juego_laberinto",
-                type: 'juego_mapa',
+            this.socket.on('mapa_tiempo', (data) => {
+                if (data > 0) {
+                    this.mapa_tiempo = (data - (data %= 60)) / 60 + (9 < data ? ':' : ':0') + data
+                } else {
+                    this.mapa_tiempo = null
+                }
             })
 
-            this.socket.emit('room_msg', {
-                uniq: "juego_laberinto",
-                my_exclude: false,
-                persistent: false,
-                message: {
-                    type: 'cerrar_mapa',
+            this.socket.on('mapa_usuarios', (data) => {
+                this.mapa_usuarios.usuarios = data.usuarios
+                this.mapa_usuarios.limite = data.limite
+                console.log(data)
+            })
+
+            this.socket.on('mapa_iniciar', (data) => {
+                console.log(data)
+            })
+
+            this.socket.on('usuario_murio',(usuario_)=>{
+                if (usuario_==this.usuario){
+                    this.usuario_vidas--
                 }
             })
 
         },
-
-        mostrar_joystick(){
-            this.joystick_=true;
+        mostrar_joystick() {
+            this.joystick_ = true;
             // actualizar_joystick(false)
         }
     },
@@ -185,7 +199,7 @@ export default {
         this.personaje = this.servidor_inicio
         // console.log( this.servidor_inicio)
         this.iniciar()
-        this.cliente = generar(this.socket,this.usuario,this.servidor_mapa)
+        this.cliente = generar(this.socket, this.usuario, this.servidor_mapa, this.mapa_puntos)
 
     }
 }
@@ -196,12 +210,26 @@ body {
     background-color: black
 }
 </style><style scoped>
-@import url('https://fonts.googleapis.com/css?family=IBM+Plex+Mono:400,700&display=swap');
+.tablero {
+    background-color: white;
+    padding: 5px;
+    display: flex;
+    justify-content: space-between
+}
 
-* {
-    box-sizing: border-box;
-    padding: 0px;
-    margin: 0px;
+.tablero .grupo {
+    position: relative;
+    display: inline-block;
+    height: 20px;
+    width: 20px;
+    border-radius: 100%;
+    top: 5px
+}
+.fin{
+    text-align: center;
+    padding:50px;
+    color:white;
+    font-size: 30px;
 }
 
 body {
@@ -214,7 +242,7 @@ canvas {
     width: 1000px;
     height: 1000px;
     position: absolute;
-    top:  -9999px;
+    top: -9999px;
     left: -9999px;
     right: -9999px;
     bottom: -9999px;

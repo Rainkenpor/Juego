@@ -3,9 +3,8 @@
 
     <!-- <img class="personaje" :src="require('./assets/fondo.png')" style="width:100%;height:100%" > -->
     <div v-if="!mostrar_mapa">
-        <button @click="crear_mapa" style="opacity:0.1">Crear Mapa</button>
-
         <div class="mapas">
+            <div class="crear" v-if="crear" @click="crear_mapa" >Crear Mapa</div>
             <div v-for="(item,index) in mapas" :key="index" class="item" @click="cargar_mapa(item.id)">
                 {{item.nombre}}
             </div>
@@ -46,6 +45,8 @@ export default {
             tiempo_esperar: null,
             tiempo_caminar: null,
 
+            crear:false,
+
             socket: null,
 
             mapas: []
@@ -69,6 +70,7 @@ export default {
             });
 
             this.socket.on('listado_mapas', (mapas) => {
+                this.crear = mapas.length==0
                 this.mapas = mapas
             })
 
@@ -116,6 +118,7 @@ export default {
         },
 
         crear_mapa() {
+            this.crear=false
             let nombre = prompt("Nombre del Mapa", "").substring(0, 50)
             if (nombre != null && nombre.trim() != "") {
                 generar()
@@ -161,6 +164,16 @@ export default {
 @font-face {
     font-family: fuente;
     src: url(./assets/font/Scream.ttf);
+}
+
+.crear{
+    display: inline;
+    margin: auto;
+    padding:15px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0px 0px 20px rgba(96, 125, 139, 1);
+    cursor: pointer;
 }
 
 body {

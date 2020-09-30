@@ -37,17 +37,15 @@ io.on('connection', (socket) => {
         io.emit('registrar_usuario', usuario_id);
         let arr = []
         for (const key in mapas) {
-            arr.push(mapas[key])
+            if (!mapas[key].play) arr.push(mapas[key])
         }
         io.emit('listado_mapas', arr);
     });
 
     socket.on('usuario_movimiento', (msg) => { 
-        if (mapas[socket.mapa_index].play  && usuarios[socket.mapa_index] && usuarios[socket.mapa_index][socket.usuario] && usuarios[socket.mapa_index][socket.usuario].vidas>0){
+        if (mapas[socket.mapa_index].play &&  usuarios[socket.mapa_index][socket.usuario].habilitar  && usuarios[socket.mapa_index] && usuarios[socket.mapa_index][socket.usuario] && usuarios[socket.mapa_index][socket.usuario].vidas>0){
             //indicando que ha iniciado
-            socket.play = true
-            usuarios[socket.mapa_index][socket.usuario].play = true
-
+            usuarios[socket.mapa_index][socket.usuario].play=true
             usuario_movimiento(socket.mapa_index,socket.usuario,msg.left,msg.top,msg.right,msg.bottom)
             let v = visibilidad(socket.mapa_index,usuarios[socket.mapa_index][socket.usuario])
              
@@ -69,6 +67,8 @@ io.on('connection', (socket) => {
             inicios:mapa_.inicios,
             min_usuarios:mapa_.min_usuarios,
             max_usuarios:mapa_.max_usuarios,
+            tiempo:180,
+            habilitar:false,
             play:false
         }
         mapas_design[mapa_index] = mapa_.mapa
@@ -90,7 +90,7 @@ io.on('connection', (socket) => {
         })
         let arr = []
         for (const key in mapas) {
-            arr.push(mapas[key])
+            if (!mapas[key].play)arr.push(mapas[key])
         }
         io.emit('listado_mapas', arr);
     });
@@ -100,16 +100,10 @@ io.on('connection', (socket) => {
 
     socket.on('cargar_mapa', (mapa_index) => {
         // uniendose a la sala
-        
-
         socket.mapa_index = mapa_index
         socket.play = false
 
         let p = mapas[mapa_index]
-        // let pos = p.inicio
-
-        // p.usuarios.push(socket.usuario)
-
         // inicio del usuario
         if (!usuarios[mapa_index]) usuarios[mapa_index] = []
         
@@ -127,10 +121,11 @@ io.on('connection', (socket) => {
                 },
                 color:null,
                 vidas:3,
+                grupo:0,
                 estados:[],
                 objetos:[],
                 objetos_completados:0,
-                play:false
+                play:false                
             }
         }
         
@@ -138,11 +133,10 @@ io.on('connection', (socket) => {
         // usuarios[mapa_index][socket.usuario].mapa_index = mapa_index
         let usuarios_mapa = (io.sockets.adapter.rooms[mapa_index])?io.sockets.adapter.rooms[mapa_index].length:0
         console.log('usuarios en mapa: '+(usuarios_mapa+1) + ' de '+p.min_usuarios)
-        if (usuarios_mapa < p.max_usuarios ){
-
+        if (!p.play ){
             //obteniendo posicion inicial
             let pos = mapas[mapa_index].inicios[usuarios_mapa%2]
-            let colores = ['#2196F3','#F44336']
+            let colores = [0x2196F3,0xF44336]
             
             socket.join(mapa_index);
             socket.emit('cargar_mapa', {
@@ -150,6 +144,7 @@ io.on('connection', (socket) => {
                 mapa:mapas_design[mapa_index]
             });
 
+            usuarios[mapa_index][socket.usuario].grupo = usuarios_mapa%2
             usuarios[mapa_index][socket.usuario].pos.x = pos.x
             usuarios[mapa_index][socket.usuario].pos.y = pos.y
             usuarios[mapa_index][socket.usuario].color = colores[usuarios_mapa%2]
@@ -158,25 +153,27 @@ io.on('connection', (socket) => {
             usuarios[mapa_index][socket.usuario].camara.y =(17 - (pos.y * 2))
 
             //iniciando juego
-            if (usuarios_mapa +1 == p.min_usuarios) mapas[mapa_index].play = true
-
+            io.to(mapa_index).emit('mapa_usuarios', {usuarios:usuarios_mapa+1,limite:p.min_usuarios});
+            if (usuarios_mapa +1 == p.min_usuarios){
+                mapas[mapa_index].play = true
+                io.to(mapa_index).emit('mapa_iniciar',true);
+                //habilitando usuarios
+                for (const key in usuarios[mapa_index]) {
+                    let data = usuarios[mapa_index][key]
+                    data.habilitar=true
+                }
+            } 
         }else{
-            // console.log(2)
-            socket.emit('cargar_mapa', {
-                fail:true
-            })
+            let arr = []
+            for (const key in mapas) {
+                if (!mapas[key].play)arr.push(mapas[key])
+            }
+            io.emit('listado_mapas', arr);
         }
     });
 });
  
-
-setInterval(()=>{
-    socket_actualizar_usuarios()
-},30)
-
-
 const socket_actualizar_usuarios=()=>{
-    // io.emit('actualizacion_usuarios', {usuarios:u});
     for (const key in mapas) {
     let data = mapas[key]
         //si el mapa contiene un usuario
@@ -275,10 +272,11 @@ const npc_visibilidad = (mapa_index,npc)=>{
 
                     //mover al usuario al punto de inicio
 
-                    if ( data.vida==0){
+                    if ( data.vida==0 && usuarios[mapa_index][usuario_cercano.usuario_id].habilitar){
                         let p = mapas[mapa_index]
-                        let pos = p.inicio
+                        let pos = p.inicios[usuarios[mapa_index][usuario_cercano.usuario_id].grupo]
                         usuarios[mapa_index][usuario_cercano.usuario_id].vidas--
+                        usuarios[mapa_index][usuario_cercano.usuario_id].habilitar = false
                         usuarios[mapa_index][usuario_cercano.usuario_id].play = false
                         usuarios[mapa_index][usuario_cercano.usuario_id].estados = []
                         usuarios[mapa_index][usuario_cercano.usuario_id].vida = 100
@@ -286,6 +284,10 @@ const npc_visibilidad = (mapa_index,npc)=>{
                         usuarios[mapa_index][usuario_cercano.usuario_id].pos.y = pos.y
                         usuarios[mapa_index][usuario_cercano.usuario_id].camara.x =(17 - (pos.x * 2))
                         usuarios[mapa_index][usuario_cercano.usuario_id].camara.y =(17 - (pos.y * 2))
+                        io.to(mapa_index).emit('usuario_murio', usuario_cercano.usuario_id);
+                        setTimeout(()=>{
+                            usuarios[mapa_index][usuario_cercano.usuario_id].habilitar = true
+                        },3000)
                     }
                 }
             }
@@ -336,7 +338,7 @@ const visibilidad = (mapa_index,usuario)=>{
     if (usuario.estados.indexOf('👽')>=0) radio_visible = 100
     let ar = []
     let arr = []
-    for(var rad = 0; rad<=360;rad+=2){
+    for(var rad = 0; rad<=360;rad+=1){
         let valid = true
         for(var radio = 10; radio<=radio_visible;radio+=15){
             let r = clockwiseRotate( {x:(8.7 * scaleX), y:(8.7 * scaleY)}, rad,radio)
@@ -378,13 +380,32 @@ const clockwiseRotate = (center, angle,radius) => {
 
 const tope_muro = (mapa_index,x,y)=>{
     if (mapas_design[mapa_index]){
+        let tope = false
         let mapa = mapas_design[mapa_index]
-        return mapa[parseInt(x)] && mapa[parseInt(x)][parseInt(y)] && mapa[parseInt(x)][parseInt(y)].t==3
+        for (let i = 0 ; i < 1; i++) {
+            if (!tope)tope = mapa[parseInt(x+i)] && mapa[parseInt(x+i)][parseInt(y+i)] && mapa[parseInt(x+i)][parseInt(y+i)].t==3
+        }
+        // console.log(tope)
+        return tope
     }else{
         return false
     }
 }
 
+
+setInterval(()=>{
+    socket_actualizar_usuarios()
+},30)
+
+setInterval(()=>{
+    for (const key in mapas) {
+        let data = mapas[key]
+        if (data.play && data.tiempo>0) {
+            data.tiempo--
+            io.to(key).emit('mapa_tiempo',data.tiempo);
+        }        
+    }
+},1000)
 
 
 
