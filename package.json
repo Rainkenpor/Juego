@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve --port 83",
+    "serve": "vue-cli-service serve --port 80",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
@@ -16,7 +16,7 @@
     "socket.io-client": "^2.3.0",
     "vue": "^3.0.0-0",
     "vue-gallery": "^2.0.1",
-    "vue-router": "^3.4.3"
+    "vue-router": "^3.4.3" 
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",
